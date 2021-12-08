@@ -1,0 +1,133 @@
+@import "./normalize.css";
+@import url("./element.scss");
+:root {
+  --font-size: 15px;
+  /* 主色 */
+  --sle-text-color: #004BEE;
+  /* 文字主色 */
+  --text-color: #222;
+  /* 未选图标导航色 */
+  --nosle-text-color: #5E7691;
+  --t-letter-space: 1px;
+  --main-color: #fff;
+  --main-back: #F6F7F9;
+  /* --main-back: #F0F7FF; */
+  /* 辅助色：F0F7FF， */
+  --auxiliary-color: #F0F7FF;
+  /* 系统默认字：595959，  */
+  --default-text-color: #595959;
+  /* 提示性文字：999999  */
+  --remind-text-color: #999;
+  --line-color: #EDEDED;
+  --border-color: #ECECEC;
+}
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  user-select: none;
+  /* 禁止用户鼠标在页面上选中文字/图片等 */
+  -webkit-tap-highlight-color: transparent;
+  font-size: var(--font-size);
+  font-family: system-ui;
+  /* font-weight: 600; */
+  color: var(--text-color);
+  min-width: 1024px;
+  /* max-width: 1920px; */
+  font-weight: 600;
+  background: #f8f8f8;
+}
+
+a {
+  /* color: var(--color-text); */
+  text-decoration: none;
+}
+
+
+.clear-fix::after {
+  clear: both;
+  content: '';
+  display: block;
+  width: 0;
+  height: 0;
+  visibility: hidden;
+}
+
+.clear-fix {
+  zoom: 1;
+}
+
+
+.left {
+  float: left;
+}
+
+.right {
+  float: right;
+}
+
+ul {
+  border: 0;
+  padding: 0;
+  outline: none;
+  list-style: none;
+}
+
+li {
+  list-style: none;
+}
+
+
+/* .fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s;
+} */
+/* 全局划入划出 */
+.slide-enter-active,
+.slide-leave-active {
+  transition: opacity .2s;
+}
+
+.slide-enter,
+.slide-leave-to
+
+/* .fade-leave-active below version 2.1.8 */
+  {
+  opacity: .4;
+  transform: translateX(-20px);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity .2s;
+}
+
+.fade-enter,
+.fade-leave-to
+
+/* .fade-leave-active below version 2.1.8 */
+  {
+  opacity: 0;
+}
+
+.fades-enter-active,
+.fades-leave-active {
+  transition: all .2s ease;
+}
+
+.fades-enter,
+.fades-leave-to
+
+/* .fade-leave-active below version 2.1.8 */
+  {
+  opacity: 0;
+  transform: translateX(-40px);
+
+}
+
