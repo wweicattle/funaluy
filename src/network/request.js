@@ -68,3 +68,16 @@ export function getRemindData(obj) {
   }
   return axios.post(url, params);
 }
+
+export function getTestData(obj) {
+  let url = baseUrl;
+  let params = {
+
+    tzid,
+    "dayNum": obj.dayNum,
+    "brand": obj.brand,
+    "path": "svr-fcapitalplatform/money/remind",
+    token: store.state.token
+  }
+  return Promise.resolve({data:'wuwei'});
+}

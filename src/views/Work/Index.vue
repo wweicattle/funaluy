@@ -35,67 +35,7 @@
         </div>
       </div>
       <div class="l-content">
-        <div class="l-c">
-          <div class="tit">账号租金总览</div>
-          <div class="tit-name">
-            <template v-for="(val, index) in accountTit" :key="index">
-              <span
-                class="bank-name"
-                :class="{
-                  active: slectIndex == index,
-                }"
-                @click="changeBank(index)"
-                >{{ val }}
-              </span>
-            </template>
-            <!-- <span class="ative">银行资金存量</span>
-
-            <span>组织资金存量</span> -->
-          </div>
-          <div class="pie"></div>
-        </div>
-        <div class="l-c">
-          <div class="tit">账号租金总览</div>
-          <div class="lines">
-            <div class="tit-name">
-              <template v-for="(val, index) in remindAccounts" :key="index">
-                <span
-                  class="bank-name"
-                  :class="{
-                    active: accountIndex == index,
-                  }"
-                  @click="changeAccount(index)"
-                  >{{ val }}
-                </span>
-              </template>
-              <!-- <span class="ative">银行资金存量</span>
-
-            <span>组织资金存量</span> -->
-            </div>
-            <ul>
-              <li class="reminder-line">
-                <!-- <img src="static/img/ee.jpg" alt="" /> -->
-                <span class="b-num">银行总数</span>
-                <span class="num"> 36 家</span>
-              </li>
-              <li class="reminder-line remittance-number">
-                <!-- <img src="static/img/ee.jpg" alt="" /> -->
-                <span class="b-num">汇款总笔数</span>
-                <span class="num"> 264 笔</span>
-              </li>
-              <li class="reminder-line remittance-amount">
-                <!-- <img src="static/img/ee.jpg" alt="" /> -->
-                <span class="b-num">汇款总金额</span>
-                <span class="num"> 2612.4 W</span>
-              </li>
-            </ul>
-            <div class="watch-detail">
-              <el-button type="border" @click="dialogShow = true"
-                >查看明细</el-button
-              >
-            </div>
-          </div>
-        </div>
+        <FunkStock />
       </div>
     </div>
     <div class="right-content">
@@ -160,7 +100,7 @@
                   <div>今天 10:36:00</div>
                 </div>
                 <div class="a-c">
-                  <div>--></div>
+                  <div><img src="~assets/img/back.png" alt="" /></div>
                   <div>到账</div>
                 </div>
                 <div class="a-r">
@@ -183,8 +123,8 @@ import {
   getRaiseMoney,
   getRemindData,
   getMoneyVolation,
+  getTestData,
 } from "network/request.js";
-import { getDateRange } from "utils/getDateRange";
 import { mapState } from "vuex";
 import {
   ref,
@@ -195,13 +135,15 @@ import {
   toRefs,
 } from "vue";
 import CasDate from "./Child/CasDate.vue";
+import FunkStock from "./Child/FunkStock.vue";
+
 export default {
   name: "WorkIndex",
   setup(props) {
     const { proxy } = getCurrentInstance();
     const dialogShow = ref(false);
-    const slectIndex = ref(0);
-    const accountIndex = ref(0);
+    // const slectIndex = ref(0);
+    // const accountIndex = ref(0);
     const state = reactive({
       shortcuts: [
         {
@@ -248,22 +190,20 @@ export default {
     });
 
     let echarts = proxy.echarts;
-    const accountTit = ["银行资金存量", "组织资金存量"];
-    const remindAccounts = ["本周到账提醒"];
+    // const accountTit = ["银行资金存量", "组织资金存量"];
+    // const remindAccounts = ["本周到账提醒"];
     const dialogVisible = ref(false);
     const remarks = ref({ "2021-11-13": "some tings" });
 
-    const changeBank = (index) => {
-      slectIndex.value = index;
-    };
-    const changeAccount = (index) => {
-      console.log(index);
-      accountIndex.value = index;
-    };
+    // const changeBank = (index) => {
+    //   slectIndex.value = index;
+    // };
+    // const changeAccount = (index) => {
+    //   console.log(index);
+    //   accountIndex.value = index;
+    // };
 
-    const handleClose = () => {
-      console.log(323);
-    };
+   
     watch(
       () => state.value1,
       (newVal) => {
@@ -274,7 +214,6 @@ export default {
     onMounted(() => {
       // 线性
       function line() {
-        // console.log(ctx.echarts);
         var chartDom = document.querySelector(".line");
         var myChart = echarts.init(chartDom);
         var option;
@@ -291,7 +230,7 @@ export default {
             {
               data: [820, 932, 901, 934, 1290, 1330, 1320],
               type: "line",
-              areaStyle: {},
+              // areaStyle: {},
               // symbol: "circle", // 默认是空心圆（中间是白色的），改成实心圆
               showAllSymbol: true,
               symbolSize: 0,
@@ -303,13 +242,10 @@ export default {
                 },
                 // borderColor: "rgba(0,75,238,.1)",
               },
-              // itemStyle: {
-              //   color: "rgba(25,163,223,1)",
-              //   borderColor: "#004BEE",
-              //   borderWidth: 2,
-              // },
+
               // tooltip: {
-              //   show: true,
+              //   trigger: "item",
+              //   formatter: "{a} der<br/>{b} : {c} ({d}%)",
               // },
               areaStyle: {
                 //区域填充样式
@@ -344,6 +280,36 @@ export default {
             right: "30px",
             bottom: "36px",
           },
+          tooltip: {
+            trigger: "axis",
+            axisPointer: {
+              type: "shadow",
+            },
+            backgroundColor: "rgba(9, 24, 48, 0.5)",
+            borderColor: "rgba(75, 253, 238, 0.4)",
+            textStyle: {
+              color: "#CFE3FC",
+            },
+            borderWidth: 1,
+            formatter: function (params) {
+              console.log(params);
+              let str = "当日金额:" + params[0].data + "元";
+              // for (let i = 0; i < params.length; i++) {
+              //   if (i == 0) {
+              //     str += `${params[i].name}<br/>${params[i].seriesName.slice(
+              //       0,
+              //       params[i].seriesName.indexOf("(")
+              //     )}<br/><span>${params[0].data}</span>%<br/>`;
+              //     continue;
+              //   }
+              //   str += `${params[i].seriesName.slice(
+              //     0,
+              //     params[i].seriesName.indexOf("(")
+              //   )}<br/><span>${params[i].data}</span>个<br/>`;
+              // }
+              return str;
+            },
+          },
         };
         option && myChart.setOption(option);
       }
@@ -354,7 +320,6 @@ export default {
         var chartDom = document.querySelector(".pie");
         var myChart = echarts.init(chartDom);
         var option;
-
         const data = genData(5);
         option = {
           title: {
@@ -364,21 +329,29 @@ export default {
           },
           tooltip: {
             trigger: "item",
-            formatter: "{a} <br/>{b} : {c} ({d}%)",
+            formatter: "{a} der<br/>{b} : {c} ({d}%)",
           },
           legend: {
             type: "scroll",
             orient: "vertical",
             right: 10,
-            top: 20,
+            top: 60,
             bottom: 20,
+            itemGap: 15,
+            itemWidth: 6,
+            itemHeight: 6,
+            icon: "circle",
+            textStyle: {
+              color: "#222",
+              fontSize: 12,
+            },
             data: data.legendData,
           },
           series: [
             {
               name: "姓名",
               type: "pie",
-              radius: ["40%", "55%"],
+              radius: ["38%", "55%"],
               center: ["40%", "50%"],
               data: data.seriesData,
               emphasis: {
@@ -433,19 +406,14 @@ export default {
     return {
       remarks,
       dialogVisible,
-      accountTit,
-      accountIndex,
-      remindAccounts,
       dialogShow,
-      slectIndex,
-      changeBank,
-      changeAccount,
       ...toRefs(state),
     };
   },
   components: {
     Calendar,
     CasDate,
+    FunkStock,
   },
 };
 </script>
@@ -480,135 +448,135 @@ export default {
     }
     .l-content {
       height: 50%;
-      display: flex;
-      justify-content: space-between;
-      overflow: hidden;
-      .l-c {
-        width: 49%;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        .pie {
-          background: #fff;
-          flex: 1;
-        }
-        .tit-name {
-          // margin: 20px 0;
-          padding: 15px 10px 10px 10px;
-          background: #fff;
-          cursor: pointer;
-          .bank-name {
-            position: relative;
-            padding-right: 5px;
-            transition: all 0.2s;
-            color: var(--nosle-text-color);
-            &.active {
-              font-size: 16px;
-              color: var(--text-color);
-              &::after {
-                content: "";
-                position: absolute;
-                bottom: -6px;
-                left: 0;
-                height: 2px;
-                width: 30px;
-                background: var(--sle-text-color);
-                right: 0;
-                margin: 0 auto;
-              }
-            }
-          }
-        }
-        .lines {
-          background: #fff;
-          flex: 1;
-          position: relative;
-          ul {
-            margin-top: 15px;
-          }
-          .reminder-line {
-            align-items: center;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 60px;
-            width: 100%;
-            background: url("/static/img/bank1.png") no-repeat;
-            background-size: contain;
-            // border: 1px dotted #ccc;
-            &.remittance-number {
-              background: url("/static/img/bank3.png") no-repeat;
-              background-size: contain;
-              .num {
-                &::after {
-                  background: linear-gradient(360deg, #9170fe 0%, #b0a0ff 100%);
-                }
+      // display: flex;
+      // justify-content: space-between;
+      // overflow: hidden;
+      // .l-c {
+      //   width: 49%;
+      //   display: flex;
+      //   flex-direction: column;
+      //   overflow: hidden;
+      //   .pie {
+      //     background: #fff;
+      //     flex: 1;
+      //   }
+      //   .tit-name {
+      //     // margin: 20px 0;
+      //     padding: 15px 10px 10px 10px;
+      //     background: #fff;
+      //     cursor: pointer;
+      //     .bank-name {
+      //       position: relative;
+      //       padding-right: 5px;
+      //       transition: all 0.2s;
+      //       color: var(--nosle-text-color);
+      //       &.active {
+      //         font-size: 16px;
+      //         color: var(--text-color);
+      //         &::after {
+      //           content: "";
+      //           position: absolute;
+      //           bottom: -6px;
+      //           left: 0;
+      //           height: 2px;
+      //           width: 30px;
+      //           background: var(--sle-text-color);
+      //           right: 0;
+      //           margin: 0 auto;
+      //         }
+      //       }
+      //     }
+      //   }
+      //   .lines {
+      //     background: #fff;
+      //     flex: 1;
+      //     position: relative;
+      //     ul {
+      //       margin-top: 15px;
+      //     }
+      //     .reminder-line {
+      //       align-items: center;
+      //       display: flex;
+      //       justify-content: space-between;
+      //       align-items: center;
+      //       height: 60px;
+      //       width: 100%;
+      //       background: url("/static/img/bank1.png") no-repeat;
+      //       background-size: contain;
+      //       // border: 1px dotted #ccc;
+      //       &.remittance-number {
+      //         background: url("/static/img/bank3.png") no-repeat;
+      //         background-size: contain;
+      //         .num {
+      //           &::after {
+      //             background: linear-gradient(360deg, #9170fe 0%, #b0a0ff 100%);
+      //           }
 
-                // justify-content: flex-end;
-              }
-            }
-            &.remittance-amount {
-              background: url("/static/img/bank2.png") no-repeat;
-              background-size: contain;
-              .num {
-                &::after {
-                  background: linear-gradient(360deg, #fde44c 0%, #feeca9 100%);
-                }
+      //           // justify-content: flex-end;
+      //         }
+      //       }
+      //       &.remittance-amount {
+      //         background: url("/static/img/bank2.png") no-repeat;
+      //         background-size: contain;
+      //         .num {
+      //           &::after {
+      //             background: linear-gradient(360deg, #fde44c 0%, #feeca9 100%);
+      //           }
 
-                // justify-content: flex-end;
-              }
-            }
-            img {
-              width: 60px;
-            }
-            .b-num {
-              color: var(--nosle-text-color);
-              padding-left: 80px;
-            }
-            .num {
-              margin-right: 30px;
-              font-size: 17px;
-              position: relative;
-              &::after {
-                content: "";
-                position: absolute;
-                bottom: -0px;
-                left: 0;
-                right: 0;
-                background: linear-gradient(360deg, #3bd99d 0%, #5ff7bd 100%);
-                height: 4px;
-                width: 100%;
-                margin: 0 auto;
-              }
+      //           // justify-content: flex-end;
+      //         }
+      //       }
+      //       img {
+      //         width: 60px;
+      //       }
+      //       .b-num {
+      //         color: var(--nosle-text-color);
+      //         padding-left: 80px;
+      //       }
+      //       .num {
+      //         margin-right: 30px;
+      //         font-size: 17px;
+      //         position: relative;
+      //         &::after {
+      //           content: "";
+      //           position: absolute;
+      //           bottom: -0px;
+      //           left: 0;
+      //           right: 0;
+      //           background: linear-gradient(360deg, #3bd99d 0%, #5ff7bd 100%);
+      //           height: 4px;
+      //           width: 100%;
+      //           margin: 0 auto;
+      //         }
 
-              // justify-content: flex-end;
-            }
-          }
+      //         // justify-content: flex-end;
+      //       }
+      //     }
 
-          .watch-detail {
-            text-align: center;
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
-            // width: 100px;
-            margin: 0 auto;
-            // height: 60px;
-            // line-height: 60px;
-            .el-button {
-              min-height: auto;
-              color: var(--sle-text-color);
-              padding: 0;
-              width: 150px;
-              height: 28px;
-              border-radius: 2px;
-              border: 1px solid #004bee;
-              background: #fff;
-            }
-          }
-        }
-      }
+      //     .watch-detail {
+      //       text-align: center;
+      //       position: absolute;
+      //       bottom: 0;
+      //       left: 0;
+      //       right: 0;
+      //       z-index: 100;
+      //       // width: 100px;
+      //       margin: 0 auto;
+      //       // height: 60px;
+      //       // line-height: 60px;
+      //       .el-button {
+      //         min-height: auto;
+      //         color: var(--sle-text-color);
+      //         padding: 0;
+      //         width: 150px;
+      //         height: 28px;
+      //         border-radius: 2px;
+      //         border: 1px solid #004bee;
+      //         background: #fff;
+      //       }
+      //     }
+      //   }
+      // }
     }
     .t-content {
       height: 50%;
@@ -671,7 +639,7 @@ export default {
   .right-content {
     // background: #fff;
     // border: 1px solid rgb(100, 32, 32);
-    width: 300px;
+    width: 280px;
     height: 100%;
     .casdate {
       // height: 360px;
@@ -684,16 +652,15 @@ export default {
       .date-time {
         display: flex;
         justify-content: space-between;
-        padding: 30px 20px 20px 20px;
-        .l{
-          .day{
+        padding: 20px 20px 10px 20px;
+        .l {
+          .day {
             font-size: 17px;
-            color:var(--sle-text-color);
-            padding-right:6px
+            color: var(--sle-text-color);
+            padding-right: 6px;
           }
-
         }
-        .r{
+        .r {
           font-size: 18px;
         }
       }
@@ -729,9 +696,9 @@ export default {
       }
     }
     .remind-content {
-      padding: 15px 0 15px 15px;
+      padding: 20px 0 15px 15px;
       background: #fff;
-      font-size: 16px;
+      font-size: 15px;
     }
   }
   ::v-deep .el-dialog {
@@ -789,6 +756,9 @@ export default {
             }
             .a-c {
               color: #d6dee6;
+              img {
+                width: 30px;
+              }
             }
             .a-r {
               text-align: right;

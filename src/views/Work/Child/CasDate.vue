@@ -78,7 +78,7 @@ export default defineComponent({
 
 <style lang="scss">
 .container {
-  height: 325px;
+  height: 305px;
   // border: 1px solid red;
   // .page {
   //   min-height: 100vh;
@@ -137,8 +137,10 @@ export default defineComponent({
       left: 20px;
       display: flex;
       z-index: 17;
+      align-items: center;
       #today {
         padding: 0 8px;
+        font-size: 13px;
       }
     }
   }
@@ -181,7 +183,7 @@ export default defineComponent({
   .calendar {
     // flex-grow: 0.5;
     // border: 1px solid red;
-    height: 240px;
+    height: 220px;
     display: flex;
     flex-direction: column;
   }
@@ -218,7 +220,7 @@ export default defineComponent({
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .calendar > ol.days > li:nth-child(7n) {
