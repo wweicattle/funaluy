@@ -1,23 +1,19 @@
 <template>
-  <div class="summary-container">
-
-  </div>
+  <div class="summary-container"></div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue"
-import {reactive,ref} from "vue"
+<script>
+import { defineComponent } from "vue";
+import { reactive, ref } from "vue";
 export default defineComponent({
-  name:"App",
+  name: "App",
   setup() {
-
-
-let data=ref();
+    let data = ref();
     return {
-data
-    }
-  }
-})
+      data,
+    };
+  },
+});
 </script>
 
 <style lang="scss" scoped>

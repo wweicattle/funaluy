@@ -2,7 +2,7 @@
   <div class="work-contain">
     <div class="left-content">
       <div class="t-content">
-        <div class="tit one-line">账号租金总览</div>
+        <div class="tit one-line">账号资金总览</div>
         <div class="select-des">
           <div class="nowday-content">
             <div class="now">当日汇总</div>
@@ -35,7 +35,7 @@
         </div>
       </div>
       <div class="l-content">
-        <FunkStock />
+        <FunkStock @sendOpenDialog="sendOpenDialog" />
       </div>
     </div>
     <div class="right-content">
@@ -119,12 +119,7 @@
 
 <script>
 import Calendar from "mpvue-calendar";
-import {
-  getRaiseMoney,
-  getRemindData,
-  getMoneyVolation,
-  getTestData,
-} from "network/request.js";
+import { getRaiseMoney, getTzlistData } from "@/network/request.js";
 import { mapState } from "vuex";
 import {
   ref,
@@ -142,8 +137,6 @@ export default {
   setup(props) {
     const { proxy } = getCurrentInstance();
     const dialogShow = ref(false);
-    // const slectIndex = ref(0);
-    // const accountIndex = ref(0);
     const state = reactive({
       shortcuts: [
         {
@@ -188,133 +181,126 @@ export default {
       ],
       value: "本月",
     });
-
     let echarts = proxy.echarts;
-    // const accountTit = ["银行资金存量", "组织资金存量"];
-    // const remindAccounts = ["本周到账提醒"];
     const dialogVisible = ref(false);
     const remarks = ref({ "2021-11-13": "some tings" });
+    let xData = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun", "dsd"];
+    let yData = [];
 
-    // const changeBank = (index) => {
-    //   slectIndex.value = index;
-    // };
-    // const changeAccount = (index) => {
-    //   console.log(index);
-    //   accountIndex.value = index;
-    // };
+    const sendOpenDialog = () => {
+      dialogShow.value = true;
+    };
 
-   
     watch(
       () => state.value1,
       (newVal) => {
         console.log(newVal[0]);
       }
     );
+    // 线性
+    function line(xData, yData) {
+      var chartDom = document.querySelector(".line");
+      var myChart = echarts.init(chartDom);
+      var option;
+      option = {
+        xAxis: {
+          type: "category",
+          boundaryGap: false,
+          // data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun","dsd"],
+          data: xData,
+        },
+        yAxis: {
+          type: "value",
+        },
+        series: [
+          {
+            data: yData,
+            type: "line",
+            // areaStyle: {},
+            // symbol: "circle", // 默认是空心圆（中间是白色的），改成实心圆
+            showAllSymbol: true,
+            symbolSize: 0,
+            smooth: true, //平滑
+            lineStyle: {
+              normal: {
+                width: 2.5,
+                color: "rgba(0,75,238,1)", // 线条颜色
+              },
+              // borderColor: "rgba(0,75,238,.1)",
+            },
+
+            // tooltip: {
+            //   trigger: "item",
+            //   formatter: "{a} der<br/>{b} : {c} ({d}%)",
+            // },
+            areaStyle: {
+              //区域填充样式
+              normal: {
+                //线性渐变，前4个参数分别是x0,y0,x2,y2(范围0~1);相当于图形包围盒中的百分比。如果最后一个参数是‘true’，则该四个值是绝对像素位置。
+                color: new echarts.graphic.LinearGradient(
+                  0,
+                  0,
+                  0,
+                  1,
+                  [
+                    {
+                      offset: 0,
+                      color: "rgba(0,75,238,.3)",
+                    },
+                    {
+                      offset: 1,
+                      color: "rgba(0,75,238,0)",
+                    },
+                  ],
+                  false
+                ),
+                shadowColor: "rgba(25,163,223, 0.5)", //阴影颜色
+                shadowBlur: 20, //shadowBlur设图形阴影的模糊大小。配合shadowColor,shadowOffsetX/Y, 设置图形的阴影效果。
+              },
+            },
+          },
+        ],
+        grid: {
+          left: "100px",
+          top: "16px",
+          right: "30px",
+          bottom: "36px",
+        },
+        tooltip: {
+          trigger: "axis",
+          axisPointer: {
+            type: "shadow",
+          },
+          backgroundColor: "rgba(9, 24, 48, 0.5)",
+          borderColor: "rgba(75, 253, 238, 0.4)",
+          textStyle: {
+            color: "#CFE3FC",
+          },
+          borderWidth: 1,
+          formatter: function (params) {
+            // console.log(params);
+            let str = "当日金额:" + params[0].data + "元";
+            // for (let i = 0; i < params.length; i++) {
+            //   if (i == 0) {
+            //     str += `${params[i].name}<br/>${params[i].seriesName.slice(
+            //       0,
+            //       params[i].seriesName.indexOf("(")
+            //     )}<br/><span>${params[0].data}</span>%<br/>`;
+            //     continue;
+            //   }
+            //   str += `${params[i].seriesName.slice(
+            //     0,
+            //     params[i].seriesName.indexOf("(")
+            //   )}<br/><span>${params[i].data}</span>个<br/>`;
+            // }
+            return str;
+          },
+        },
+      };
+      option && myChart.setOption(option);
+    }
 
     onMounted(() => {
-      // 线性
-      function line() {
-        var chartDom = document.querySelector(".line");
-        var myChart = echarts.init(chartDom);
-        var option;
-        option = {
-          xAxis: {
-            type: "category",
-            boundaryGap: false,
-            data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-          },
-          yAxis: {
-            type: "value",
-          },
-          series: [
-            {
-              data: [820, 932, 901, 934, 1290, 1330, 1320],
-              type: "line",
-              // areaStyle: {},
-              // symbol: "circle", // 默认是空心圆（中间是白色的），改成实心圆
-              showAllSymbol: true,
-              symbolSize: 0,
-              smooth: true, //平滑
-              lineStyle: {
-                normal: {
-                  width: 2.5,
-                  color: "rgba(0,75,238,1)", // 线条颜色
-                },
-                // borderColor: "rgba(0,75,238,.1)",
-              },
-
-              // tooltip: {
-              //   trigger: "item",
-              //   formatter: "{a} der<br/>{b} : {c} ({d}%)",
-              // },
-              areaStyle: {
-                //区域填充样式
-                normal: {
-                  //线性渐变，前4个参数分别是x0,y0,x2,y2(范围0~1);相当于图形包围盒中的百分比。如果最后一个参数是‘true’，则该四个值是绝对像素位置。
-                  color: new echarts.graphic.LinearGradient(
-                    0,
-                    0,
-                    0,
-                    1,
-                    [
-                      {
-                        offset: 0,
-                        color: "rgba(0,75,238,.3)",
-                      },
-                      {
-                        offset: 1,
-                        color: "rgba(0,75,238,0)",
-                      },
-                    ],
-                    false
-                  ),
-                  shadowColor: "rgba(25,163,223, 0.5)", //阴影颜色
-                  shadowBlur: 20, //shadowBlur设图形阴影的模糊大小。配合shadowColor,shadowOffsetX/Y, 设置图形的阴影效果。
-                },
-              },
-            },
-          ],
-          grid: {
-            left: "40px",
-            top: "16px",
-            right: "30px",
-            bottom: "36px",
-          },
-          tooltip: {
-            trigger: "axis",
-            axisPointer: {
-              type: "shadow",
-            },
-            backgroundColor: "rgba(9, 24, 48, 0.5)",
-            borderColor: "rgba(75, 253, 238, 0.4)",
-            textStyle: {
-              color: "#CFE3FC",
-            },
-            borderWidth: 1,
-            formatter: function (params) {
-              console.log(params);
-              let str = "当日金额:" + params[0].data + "元";
-              // for (let i = 0; i < params.length; i++) {
-              //   if (i == 0) {
-              //     str += `${params[i].name}<br/>${params[i].seriesName.slice(
-              //       0,
-              //       params[i].seriesName.indexOf("(")
-              //     )}<br/><span>${params[0].data}</span>%<br/>`;
-              //     continue;
-              //   }
-              //   str += `${params[i].seriesName.slice(
-              //     0,
-              //     params[i].seriesName.indexOf("(")
-              //   )}<br/><span>${params[i].data}</span>个<br/>`;
-              // }
-              return str;
-            },
-          },
-        };
-        option && myChart.setOption(option);
-      }
-      line();
-
       // 饼图
       function pie() {
         var chartDom = document.querySelector(".pie");
@@ -403,11 +389,29 @@ export default {
       pie();
     });
 
+    // 请求资金总览数据
+    const getLineData = async () => {
+      let obj = { startTime: "2021-12-01", endTime: "2021-12-30" };
+      let data = await getRaiseMoney(obj);
+      xData = Object.keys(data.content);
+      yData = Object.values(data.content);
+      line(xData, yData);
+    }; 
+    const getTzlistDatas = async () => {
+      console.log(3234);
+      let obj = { startTime: "2021-12-01", endTime: "2021-12-30" };
+      let data = await getTzlistData(obj);
+      console.log(data);
+    };
+    getLineData();
+    getTzlistDatas();
+
     return {
       remarks,
       dialogVisible,
       dialogShow,
       ...toRefs(state),
+      sendOpenDialog,
     };
   },
   components: {

@@ -1,7 +1,7 @@
 <template>
   <div class="funk-container">
     <div class="l-c">
-      <div class="tit">账号租金总览</div>
+      <div class="tit">资金存量</div>
       <div class="tit-name">
         <template v-for="(val, index) in accountTit" :key="index">
           <span
@@ -20,7 +20,7 @@
       <div class="pie"></div>
     </div>
     <div class="l-c">
-      <div class="tit">账号租金总览</div>
+      <div class="tit">到账提醒</div>
       <div class="lines">
         <div class="tit-name">
           <template v-for="(val, index) in remindAccounts" :key="index">
@@ -55,7 +55,7 @@
           </li>
         </ul>
         <div class="watch-detail">
-          <el-button type="border" @click="dialogShow = true"
+          <el-button type="border" @click="sendOpenDialogBtn"
             >查看明细</el-button
           >
         </div>
@@ -69,8 +69,8 @@ import { defineComponent } from "vue";
 import { reactive, ref } from "vue";
 export default defineComponent({
   name: "App",
-  emit:["sendOpenDialog"],
-  setup() {
+  emit: ["sendOpenDialog"],
+  setup(props, { emit }) {
     const accountTit = ["银行资金存量", "组织资金存量"];
     const remindAccounts = ["本周到账提醒"];
     const slectIndex = ref(0);
@@ -80,10 +80,11 @@ export default defineComponent({
       slectIndex.value = index;
     };
     const changeAccount = (index) => {
-      console.log(index);
       accountIndex.value = index;
     };
-
+    const sendOpenDialogBtn = () => {
+      emit("sendOpenDialog");
+    };
     return {
       data,
       accountTit,
@@ -93,6 +94,7 @@ export default defineComponent({
       accountIndex,
       changeBank,
       changeAccount,
+      sendOpenDialogBtn
     };
   },
 });

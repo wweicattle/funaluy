@@ -7,7 +7,7 @@ module.exports = {
     port: 8081,
     proxy: {
       '/api': {
-        target: 'http://192.168.37.27:9502/money2/transfer',
+        target: 'http://192.168.37.44:9502/money',
         pathRewrite: {
           changeOrigin: true,
           '^/api': ''
