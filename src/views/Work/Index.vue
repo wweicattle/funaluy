@@ -1,6 +1,7 @@
 <template>
   <div class="work-contain">
     <div class="left-content">
+      {{si}}
       <div class="t-content">
         <div class="tit one-line">账号资金总览</div>
         <div class="select-des">
@@ -35,7 +36,7 @@
         </div>
       </div>
       <div class="l-content">
-        <FunkStock @sendOpenDialog="sendOpenDialog" />
+        <FunkStock />
       </div>
     </div>
     <div class="right-content">
@@ -68,7 +69,7 @@
           </div>
           <span class="time">2021.11.30</span>
         </div>
-        <div class="pay-item">
+        <div class="pay-item" ref="si">
           <div>
             <span class="icon"></span>
             <span class="des">大额转账支付预警</span>
@@ -87,33 +88,7 @@
         <cas-date />
       </el-dialog>
     </div>
-    <el-dialog v-model="dialogShow" title="到账提醒" width="480px">
-      <div class="account-pass scrollbar-css">
-        <ul>
-          <template v-for="(val, index) in 3" :key="index">
-            <li class="a-item">
-              <div class="tits"></div>
-              <div class="a-content">
-                <div class="a-l">
-                  <div class="tit-com">成都闽画商贸易公司</div>
-                  <div class="mar">22914312411</div>
-                  <div>今天 10:36:00</div>
-                </div>
-                <div class="a-c">
-                  <div><img src="~assets/img/back.png" alt="" /></div>
-                  <div>到账</div>
-                </div>
-                <div class="a-r">
-                  <div class="tit-com">利郎(中国)有限公司</div>
-                  <div class="mar">2291431241</div>
-                  <div class="pri">+ CNY 1.200.000.000</div>
-                </div>
-              </div>
-            </li>
-          </template>
-        </ul>
-      </div>
-    </el-dialog>
+
   </div>
 </template>
 
@@ -128,15 +103,19 @@ import {
   reactive,
   getCurrentInstance,
   toRefs,
+  watchEffect,
 } from "vue";
 import CasDate from "./Child/CasDate.vue";
 import FunkStock from "./Child/FunkStock.vue";
-
 export default {
   name: "WorkIndex",
-  setup(props) {
+data(){
+  return {si:3434}
+},
+  setup(props,{emit}) {
     const { proxy } = getCurrentInstance();
-    const dialogShow = ref(false);
+    let echarts = proxy.echarts;
+    const si=ref(null);
     const state = reactive({
       shortcuts: [
         {
@@ -181,16 +160,13 @@ export default {
       ],
       value: "本月",
     });
-    let echarts = proxy.echarts;
     const dialogVisible = ref(false);
     const remarks = ref({ "2021-11-13": "some tings" });
     let xData = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun", "dsd"];
     let yData = [];
-
-    const sendOpenDialog = () => {
-      dialogShow.value = true;
-    };
-
+    watchEffect(()=>{
+      console.log(dialogVisible.value);
+    })
     watch(
       () => state.value1,
       (newVal) => {
@@ -301,92 +277,7 @@ export default {
     }
 
     onMounted(() => {
-      // 饼图
-      function pie() {
-        var chartDom = document.querySelector(".pie");
-        var myChart = echarts.init(chartDom);
-        var option;
-        const data = genData(5);
-        option = {
-          title: {
-            // text: "同名数量统计",
-            // subtext: "纯属虚构",
-            // left: "center",
-          },
-          tooltip: {
-            trigger: "item",
-            formatter: "{a} der<br/>{b} : {c} ({d}%)",
-          },
-          legend: {
-            type: "scroll",
-            orient: "vertical",
-            right: 10,
-            top: 60,
-            bottom: 20,
-            itemGap: 15,
-            itemWidth: 6,
-            itemHeight: 6,
-            icon: "circle",
-            textStyle: {
-              color: "#222",
-              fontSize: 12,
-            },
-            data: data.legendData,
-          },
-          series: [
-            {
-              name: "姓名",
-              type: "pie",
-              radius: ["38%", "55%"],
-              center: ["40%", "50%"],
-              data: data.seriesData,
-              emphasis: {
-                itemStyle: {
-                  shadowBlur: 10,
-                  shadowOffsetX: 0,
-                  shadowColor: "rgba(0, 0, 0, 0.5)",
-                },
-              },
-            },
-          ],
-        };
-        function genData(count) {
-          // prettier-ignore
-          const nameList = [
-        '赵', '钱', '孙', '李', '周', '吴', '郑', '王', '冯', '陈', '褚', '卫', '蒋', '沈', '韩', '杨', '朱', '秦', '尤', '许', '何', '吕', '施', '张', '孔', '曹', '严', '华', '金', '魏', '陶', '姜', '戚', '谢', '邹', '喻', '柏', '水', '窦', '章', '云', '苏', '潘', '葛', '奚', '范', '彭', '郎', '鲁', '韦', '昌', '马', '苗', '凤', '花', '方', '俞', '任', '袁', '柳', '酆', '鲍', '史', '唐', '费', '廉', '岑', '薛', '雷', '贺', '倪', '汤', '滕', '殷', '罗', '毕', '郝', '邬', '安', '常', '乐', '于', '时', '傅', '皮', '卞', '齐', '康', '伍', '余', '元', '卜', '顾', '孟', '平', '黄', '和', '穆', '萧', '尹', '姚', '邵', '湛', '汪', '祁', '毛', '禹', '狄', '米', '贝', '明', '臧', '计', '伏', '成', '戴', '谈', '宋', '茅', '庞', '熊', '纪', '舒', '屈', '项', '祝', '董', '梁', '杜', '阮', '蓝', '闵', '席', '季', '麻', '强', '贾', '路', '娄', '危'
-    ];
-          const legendData = [];
-          const seriesData = [];
-          for (var i = 0; i < count; i++) {
-            var name =
-              Math.random() > 0.65
-                ? makeWord(4, 1) + "·" + makeWord(3, 0)
-                : makeWord(2, 1);
-            legendData.push(name);
-            seriesData.push({
-              name: name,
-              value: Math.round(Math.random() * 100000),
-            });
-          }
-          return {
-            legendData: legendData,
-            seriesData: seriesData,
-          };
-          function makeWord(max, min) {
-            const nameLen = Math.ceil(Math.random() * max + min);
-            const name = [];
-            for (var i = 0; i < nameLen; i++) {
-              name.push(
-                nameList[Math.round(Math.random() * nameList.length - 1)]
-              );
-            }
-            return name.join("");
-          }
-        }
-
-        option && myChart.setOption(option);
-      }
-      pie();
+      console.log(si.value);
     });
 
     // 请求资金总览数据
@@ -395,29 +286,25 @@ export default {
       let data = await getRaiseMoney(obj);
       xData = Object.keys(data.content);
       yData = Object.values(data.content);
+      console.log(yData);
       line(xData, yData);
-    }; 
-    const getTzlistDatas = async () => {
-      console.log(3234);
-      let obj = { startTime: "2021-12-01", endTime: "2021-12-30" };
-      let data = await getTzlistData(obj);
-      console.log(data);
     };
-    getLineData();
-    getTzlistDatas();
+    
 
+    let $els={el:null};
+    getLineData();
     return {
       remarks,
       dialogVisible,
-      dialogShow,
       ...toRefs(state),
-      sendOpenDialog,
+      si
     };
   },
   components: {
     Calendar,
     CasDate,
     FunkStock,
+    
   },
 };
 </script>

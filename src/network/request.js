@@ -20,6 +20,7 @@ let tzid = 1;
 //   return axios.post(url, params);
 // }
 // 
+// 当日汇总
 export function getRaiseMoney(obj) {
   let url = baseUrl + "/fundOverview";
   let {
@@ -52,35 +53,20 @@ export function getTzlistData(obj) {
   }
   return axios.post(url, params);
 }
-      // let obj = { startTime: "2021-12-01", endTime: "2021-12-30" };
-
-// getTzlistData(obj).then(da=>{
-//   console.log(da);
-// })
-// export function getMoneyVolation(obj) {
-//   let url = baseUrl;
-//   let params = {
-//     tzid,
-//     "date": obj.rangeArr,
-//     "brand": obj.tzstate,
-//     "path": "svr-fcapitalplatform/money/moneyVolation",
-//     token: store.state.token
-
-//   }
-//   return axios.post(url, params);
-// }
 
 
 
-// export function getRemindData(obj) {
-//   let url = baseUrl;
-//   let params = {
-
-//     tzid,
-//     "dayNum": obj.dayNum,
-//     "brand": obj.brand,
-//     "path": "svr-fcapitalplatform/money/remind",
-//     token: store.state.token
-//   }
-//   return axios.post(url, params);
-// }
+// 到账提醒
+export function getArriveData(obj) {
+  let url = baseUrl + "/arrivalReminder";
+  let {
+    endTime
+  } = obj;
+  let params = {
+    tzid,
+    "userid": "14692",
+    endTime,
+    "sysno": ""
+  }
+  return axios.post(url, params);
+}

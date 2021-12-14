@@ -7,7 +7,7 @@
           <span
             class="bank-name"
             :class="{
-              active: slectIndex == index,
+              active: selectIndex == index,
             }"
             @click="changeBank(index)"
             >{{ val }}
@@ -41,17 +41,19 @@
           <li class="reminder-line">
             <!-- <img src="static/img/ee.jpg" alt="" /> -->
             <span class="b-num">银行总数</span>
-            <span class="num"> 36 家</span>
+            <span class="num"> {{ acountRemindData.totleBanks }}家</span>
           </li>
           <li class="reminder-line remittance-number">
             <!-- <img src="static/img/ee.jpg" alt="" /> -->
             <span class="b-num">汇款总笔数</span>
-            <span class="num"> 264 笔</span>
+            <span class="num">{{ acountRemindData.totalNum }}笔</span>
           </li>
           <li class="reminder-line remittance-amount">
             <!-- <img src="static/img/ee.jpg" alt="" /> -->
             <span class="b-num">汇款总金额</span>
-            <span class="num"> 2612.4 W</span>
+            <span class="num">
+              {{ Number(acountRemindData.totalAmount) / 10000 }} W</span
+            >
           </li>
         </ul>
         <div class="watch-detail">
@@ -61,40 +63,264 @@
         </div>
       </div>
     </div>
+    <el-dialog v-model="dialogShow" title="到账提醒" width="580px">
+      <div class="funk-pass scrollbar-css">
+        <el-table :data="tableData" style="width: 100%">
+          <el-table-column type="expand">
+            <template #default="props">
+              <!-- <p>{{ props.row.content }}</p> -->
+              <ul>
+                <template
+                  v-for="(val, index) in props.row.content"
+                  :key="index"
+                >
+                  <li>
+                    <div>卡号：{{ val.sysno }}</div>
+                    余额{{ val.ye }}
+                  </li>
+                </template>
+              </ul>
+            </template>
+          </el-table-column>
+          <el-table-column
+            label="资金名称"
+            prop="orgname"
+            v-if="selectIndex == 0"
+          />
+          <el-table-column label="资金名称" prop="bnkname" v-else />
+
+          <el-table-column label="对公金额" prop="publicAmount" />
+          <el-table-column label="对私金额" prop="publicAmount" />
+        </el-table>
+        <!-- <ul>
+          <template v-for="(val, index) in 3" :key="index">
+            <li class="a-item">
+              <div class="tits"></div>
+              <div class="a-content">
+                <div class="a-l">
+                  <div class="tit-com">成都闽画商贸易公司</div>
+                  <div class="mar">22914312411</div>
+                  <div>今天 10:36:00</div>
+                </div>
+                <div class="a-c">
+                  <div><img src="~assets/img/back.png" alt="" /></div>
+                  <div>到账</div>
+                </div>
+                <div class="a-r">
+                  <div class="tit-com">利郎(中国)有限公司</div>
+                  <div class="mar">2291431241</div>
+                  <div class="pri">+ CNY 1.200.000.000</div>
+                </div>
+              </div>
+            </li>
+          </template>
+        </ul> -->
+      </div>
+    </el-dialog>
+
+    <el-dialog v-model="accountdialogShow" title="到账提醒" width="480px">
+      <div class="account-pass scrollbar-css">
+        <!-- <el-select v-model="accountValue" placeholder="Select"> -->
+          <!-- <el-option
+            v-for="item in accountOpitons"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          > -->
+          <!-- </el-option> -->
+        <!-- </el-select> -->
+        <ul>
+          {{
+            acountRemindData.content
+          }}
+          <template v-for="(val, index) in 3" :key="index">
+            <li class="a-item">
+              <div class="tits"></div>
+              <div class="a-content">
+                <div class="a-l">
+                  <div class="tit-com">成都闽画商贸易公司</div>
+                  <div class="mar">22914312411</div>
+                  <div>今天 10:36:00</div>
+                </div>
+                <div class="a-c">
+                  <div><img src="~assets/img/back.png" alt="" /></div>
+                  <div>到账</div>
+                </div>
+                <div class="a-r">
+                  <div class="tit-com">利郎(中国)有限公司</div>
+                  <div class="mar">2291431241</div>
+                  <div class="pri">+ CNY 1.200.000.000</div>
+                </div>
+              </div>
+            </li>
+          </template>
+        </ul>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script >
-import { defineComponent } from "vue";
-import { reactive, ref } from "vue";
+import { defineComponent, onBeforeMount } from "vue";
+import { reactive, ref, onMounted, getCurrentInstance, toRefs } from "vue";
+import { getTzlistData, getArriveData } from "@/network/request.js";
+
 export default defineComponent({
   name: "App",
-  emit: ["sendOpenDialog"],
+  // emit: ["sendOpenDialog"],
   setup(props, { emit }) {
+    const { proxy } = getCurrentInstance();
+    let echarts = proxy.echarts;
     const accountTit = ["银行资金存量", "组织资金存量"];
     const remindAccounts = ["本周到账提醒"];
-    const slectIndex = ref(0);
+    const selectIndex = ref(0);
     const accountIndex = ref(0);
-    let data = ref();
+    let bankData = [];
+    let orgMap = [];
+    let data = ref(null);
+    let myChart = ref(null);
+    const dialogShow = ref(false);
+    let tableData = ref([]);
+    let accountdialogShow = ref(false);
+    //
+
+    const accountOpitons = ref({});
+    const accountValue = ref(null);
+    let acountRemind = reactive({
+      acountRemindData: {
+        content: [],
+        totalAmount: 4.2,
+        totalNum: 4,
+        totleBanks: 74,
+      },
+    });
     const changeBank = (index) => {
-      slectIndex.value = index;
+      selectIndex.value = index;
+      myChart.value.resize();
+      if (!selectIndex.value) return pie(bankData);
+      pie(orgMap);
     };
     const changeAccount = (index) => {
       accountIndex.value = index;
     };
     const sendOpenDialogBtn = () => {
-      emit("sendOpenDialog");
+      // emit("sendOpenDialog");
+      accountdialogShow.value = true;
     };
+    window.addEventListener("resize", () => {
+      // myChart.value.resize();
+    });
+    onBeforeMount(() => {
+      // window.removeEventListener("resize")
+    });
+    // 饼图
+    function pie(data) {
+      var chartDom = document.querySelector(".pie");
+      myChart.value = echarts.init(chartDom);
+      var option;
+      option = {
+        title: {
+          // text: "同名数量统计",
+          // subtext: "纯属虚构",
+          // left: "right",
+        },
+        tooltip: {
+          trigger: "item",
+          formatter: "{b}: {c}元<br/>占比率：({d}%)",
+          position: "right",
+        },
+        legend: {
+          type: "scroll",
+          orient: "vertical",
+          right: 26,
+          top: 40,
+          bottom: 30,
+          itemGap: 15,
+          itemWidth: 6,
+          itemHeight: 6,
+          icon: "circle",
+          textStyle: {
+            color: "#222",
+            fontSize: 12,
+          },
+        },
+        series: [
+          {
+            name: "姓名",
+            type: "pie",
+            radius: ["40%", "55%"],
+            center: ["40%", "50%"],
+            data: data,
+            label: {
+              show: true,
+              position: "center",
+            },
+            emphasis: {
+              itemStyle: {
+                shadowBlur: 10,
+                shadowOffsetX: 0,
+                shadowColor: "rgba(0, 0, 0, 0.5)",
+              },
+            },
+          },
+        ],
+      };
+
+      option && myChart.value.setOption(option);
+    }
+
+    const getTzlistDatas = async () => {
+      let obj = { startTime: "2021-12-01", endTime: "2021-12-30" };
+      let data = await getTzlistData(obj);
+      bankData = data.bankMap.map((val) => {
+        return {
+          name: val.bnkname,
+          value: val.totleAmount,
+          content: val.content,
+          privateAmount: val.privateAmount,
+          publicAmount: val.publicAmount,
+        };
+      });
+      orgMap = data.orgMap.map((val) => {
+        return {
+          name: val.orgname,
+          value: val.totleAmount,
+          content: val.content,
+          privateAmount: val.privateAmount,
+          publicAmount: val.publicAmount,
+        };
+      });
+      pie(bankData);
+      myChart.value.on("click", function (params) {
+        // 控制台打印数据的名称
+        dialogShow.value = true;
+        console.log(params);
+        tableData.value = params.data.content;
+        console.log(tableData);
+      });
+    };
+    getTzlistDatas();
+
+    const getArriveDatas = async () => {
+      let obj = { endTime: "2021-12-08" };
+      acountRemind.acountRemindData = await getArriveData(obj);
+    };
+    getArriveDatas();
+
     return {
       data,
       accountTit,
       remindAccounts,
       accountIndex,
-      slectIndex,
+      selectIndex,
       accountIndex,
       changeBank,
       changeAccount,
-      sendOpenDialogBtn
+      sendOpenDialogBtn,
+      dialogShow,
+      accountdialogShow,
+      tableData,
+      ...toRefs(acountRemind),
     };
   },
 });
@@ -238,6 +464,75 @@ export default defineComponent({
           border-radius: 2px;
           border: 1px solid #004bee;
           background: #fff;
+        }
+      }
+    }
+  }
+  .funk-pass {
+    height: 420px;
+    overflow-y: scroll;
+    padding: 0 25px;
+  }
+  .account-pass {
+    // padding: 20px;
+    height: 420px;
+    overflow-y: scroll;
+
+    ul {
+      .a-item {
+        .tits {
+          position: relative;
+          height: 15px;
+          margin-top: 30px;
+          &::before {
+            width: 10px;
+            height: 10px;
+            background: #fe4440;
+            border-radius: 50%;
+            position: absolute;
+            left: 0;
+            content: "";
+          }
+          &::after {
+            width: 10px;
+            height: 10px;
+            background: #ffe54c;
+            border-radius: 50%;
+            position: absolute;
+            left: 8px;
+            content: "";
+          }
+        }
+        .a-content {
+          // height: 90px;
+          // border: 1px solid red;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0 10px;
+          .mar {
+            padding: 4px 0 6px 0;
+            font-size: 14px;
+            color: #5e7691;
+          }
+          .a-l {
+            text-align: left;
+          }
+          .a-c {
+            color: #d6dee6;
+            img {
+              width: 30px;
+            }
+          }
+          .a-r {
+            text-align: right;
+            .pri {
+              color: var(--sle-text-color);
+            }
+          }
+          .tit-com {
+            font-size: 16px;
+          }
         }
       }
     }
