@@ -45,13 +45,17 @@
 <script>
 import Calendar from "./calendar.js";
 import { defineComponent } from "vue";
-import { reactive, ref, onMounted } from "vue";
+import { reactive, ref, onMounted, toRefs } from "vue";
+import { getMonthRemind, getDayRemind } from "network/request";
+
 export default defineComponent({
-  name: "App",
+  name: "Casdate",
   setup() {
     let calendar = ref(null);
+    let monthRemind = reactive({
+      monthData: {},
+    });
     onMounted(() => {
-      console.log(calendar.value);
       let calendars = new Calendar({
         element: calendar.value,
       });
@@ -65,12 +69,26 @@ export default defineComponent({
         calendars.resetMonth();
       };
     });
-    // console.log(calendar.value);
 
+    // let obj = {
+    //   year: 2021,
+    //   month: 12,
+    //   startTime: "2021-12-1",
+    //   endTime: "2021-12-30",
+    // };
+    // getMonthRemind(obj).then((da) => {
+    //   console.log(da);
+    //   monthRemind.monthData = da;
+    // });
+    // // console.log(calendar.value);
+    // getDayRemind(obj).then((da) => {
+    //   console.log(da);
+    // });
     let data = ref();
     return {
       data,
       calendar,
+      ...toRefs(monthRemind),
     };
   },
 });
@@ -133,7 +151,7 @@ export default defineComponent({
     }
     .controls {
       position: absolute;
-      top: 20px;
+      top: 17px;
       left: 20px;
       display: flex;
       z-index: 17;
@@ -146,8 +164,9 @@ export default defineComponent({
   }
   .calendar-date {
     position: relative;
-    top: -45px;
+    top: -55px;
     z-index: 100;
+    padding: 0 12px;
     .remind-text {
       padding: 10px 15px 0 25px;
       display: flex;
@@ -183,7 +202,7 @@ export default defineComponent({
   .calendar {
     // flex-grow: 0.5;
     // border: 1px solid red;
-    height: 220px;
+    height: 230px;
     display: flex;
     flex-direction: column;
   }
@@ -198,6 +217,7 @@ export default defineComponent({
     display: flex;
     text-align: right;
     height: 30px;
+    margin-bottom: 10px;
   }
 
   .calendar ol.weekdays li {
@@ -221,6 +241,10 @@ export default defineComponent({
     align-items: center;
     justify-content: center;
     font-size: 13px;
+    cursor: pointer;
+    &:hover {
+      opacity: 0.8;
+    }
   }
 
   .calendar > ol.days > li:nth-child(7n) {
@@ -235,6 +259,19 @@ export default defineComponent({
     line-height: 1.6em;
     border-radius: 50%;
     color: white;
+    position: relative;
+    // &::after {
+    //   content: "";
+    //   position: absolute;
+    //   bottom: -4px;
+    //   left: 0;
+    //   right: 0;
+    //   width: 5px;
+    //   height: 5px;
+    //   margin: 0 auto;
+    //   border-radius: 50%;
+    //   background: red;
+    // }
   }
 
   .calendar .weekdays .weekend {

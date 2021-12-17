@@ -40,17 +40,17 @@
         <ul>
           <li class="reminder-line">
             <!-- <img src="static/img/ee.jpg" alt="" /> -->
-            <span class="b-num">银行总数</span>
-            <span class="num"> {{ acountRemindData.totleBanks }}家</span>
+            <span class="b-num">{{ acountRemindData.totalBanksName }}</span>
+            <span class="num"> {{ acountRemindData.totalBanks }}家</span>
           </li>
           <li class="reminder-line remittance-number">
             <!-- <img src="static/img/ee.jpg" alt="" /> -->
-            <span class="b-num">汇款总笔数</span>
+            <span class="b-num">{{ acountRemindData.totalNumName }}</span>
             <span class="num">{{ acountRemindData.totalNum }}笔</span>
           </li>
           <li class="reminder-line remittance-amount">
             <!-- <img src="static/img/ee.jpg" alt="" /> -->
-            <span class="b-num">汇款总金额</span>
+            <span class="b-num">{{ acountRemindData.totalAmountName }}</span>
             <span class="num">
               {{ Number(acountRemindData.totalAmount) / 10000 }} W</span
             >
@@ -63,7 +63,12 @@
         </div>
       </div>
     </div>
-    <el-dialog v-model="dialogShow" title="到账提醒" width="580px">
+    <el-dialog
+      v-model="dialogShow"
+      title="到账提醒"
+      width="480px"
+      class="momney"
+    >
       <div class="funk-pass scrollbar-css">
         <el-table :data="tableData" style="width: 100%">
           <el-table-column type="expand">
@@ -75,8 +80,13 @@
                   :key="index"
                 >
                   <li>
-                    <div>卡号：{{ val.sysno }}</div>
-                    余额{{ val.ye }}
+                    <div class="card">
+                      <span class="no">卡号:</span
+                      ><span class="no-val">{{ val.sysno }}</span>
+                    </div>
+                    <div class="money-num">
+                      余额:<span class="no-val">{{ val.ye }}</span>
+                    </div>
                   </li>
                 </template>
               </ul>
@@ -120,36 +130,46 @@
 
     <el-dialog v-model="accountdialogShow" title="到账提醒" width="480px">
       <div class="account-pass scrollbar-css">
-        <!-- <el-select v-model="accountValue" placeholder="Select"> -->
-          <!-- <el-option
-            v-for="item in accountOpitons"
+        请选择银行：
+        <el-select v-model="accountValue" placeholder="Select">
+          <el-option
+            v-for="item in acountRemindData.content"
             :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          > -->
-          <!-- </el-option> -->
-        <!-- </el-select> -->
+            :label="item.bnkname"
+            :value="item.bnkname"
+          >
+          </el-option>
+        </el-select>
+
         <ul>
-          {{
-            acountRemindData.content
-          }}
-          <template v-for="(val, index) in 3" :key="index">
+          <template v-for="(val, index) in accountOpitons" :key="index">
             <li class="a-item">
               <div class="tits"></div>
               <div class="a-content">
                 <div class="a-l">
-                  <div class="tit-com">成都闽画商贸易公司</div>
-                  <div class="mar">22914312411</div>
-                  <div>今天 10:36:00</div>
+                  <el-tooltip :content="val.ACTNAM" placement="top">
+                    <div class="tit-com">{{ val.ACTNAM }}</div>
+                  </el-tooltip>
+
+                  <div class="mar">{{ val.ACTNBR }}</div>
+                  <div>{{ val.BNKTIM }}</div>
                 </div>
                 <div class="a-c">
                   <div><img src="~assets/img/back.png" alt="" /></div>
                   <div>到账</div>
                 </div>
                 <div class="a-r">
-                  <div class="tit-com">利郎(中国)有限公司</div>
-                  <div class="mar">2291431241</div>
-                  <div class="pri">+ CNY 1.200.000.000</div>
+                  <el-tooltip :content="val.OTHNAM" placement="top">
+                    <div class="tit-com">{{ val.OTHNAM }}</div>
+                  </el-tooltip>
+
+                  <!-- <el-tooltip :content="val.OTHACT" placement="top"> -->
+                  <div class="mar">
+                    {{ val.OTHACT }}
+                  </div>
+                  <!-- </el-tooltip> -->
+
+                  <div class="pri">{{ val.CCYNBR + val.OTHACT }}</div>
                 </div>
               </div>
             </li>
@@ -161,7 +181,7 @@
 </template>
 
 <script >
-import { defineComponent, onBeforeMount } from "vue";
+import { defineComponent, onBeforeMount, watch } from "vue";
 import { reactive, ref, onMounted, getCurrentInstance, toRefs } from "vue";
 import { getTzlistData, getArriveData } from "@/network/request.js";
 
@@ -184,16 +204,15 @@ export default defineComponent({
     let accountdialogShow = ref(false);
     //
 
-    const accountOpitons = ref({});
+    let accountOpitons = ref([]);
     const accountValue = ref(null);
     let acountRemind = reactive({
-      acountRemindData: {
-        content: [],
-        totalAmount: 4.2,
-        totalNum: 4,
-        totleBanks: 74,
-      },
+      acountRemindData: {},
     });
+
+    let bankValue;
+    let orgValue;
+
     const changeBank = (index) => {
       selectIndex.value = index;
       myChart.value.resize();
@@ -203,6 +222,15 @@ export default defineComponent({
     const changeAccount = (index) => {
       accountIndex.value = index;
     };
+
+    watch(accountValue, (newVal) => {
+      accountOpitons.value = acountRemind.acountRemindData.content.find(
+        (val) => {
+          return val.bnkname == newVal;
+        }
+      ).content;
+      // console.log(accountOpitons);
+    });
     const sendOpenDialogBtn = () => {
       // emit("sendOpenDialog");
       accountdialogShow.value = true;
@@ -232,9 +260,10 @@ export default defineComponent({
         legend: {
           type: "scroll",
           orient: "vertical",
-          right: 26,
-          top: 40,
-          bottom: 30,
+          // right: 40,
+          top: 24,
+          left: 280,
+          // bottom: 30,
           itemGap: 15,
           itemWidth: 6,
           itemHeight: 6,
@@ -243,13 +272,19 @@ export default defineComponent({
             color: "#222",
             fontSize: 12,
           },
+          formatter: (name) => {
+            let sum=accountValue.value==0?bankValue:orgValue;
+
+            let nowsum = data.find((val) => val.name == name).value;
+            return name + `   ${((nowsum / sum.toFixed(2)) * 100).toFixed(2)}%`;
+          },
         },
         series: [
           {
             name: "姓名",
             type: "pie",
-            radius: ["40%", "55%"],
-            center: ["40%", "50%"],
+            radius: ["45%", "60%"],
+            center: ["30%", "50%"],
             data: data,
             label: {
               show: true,
@@ -272,6 +307,9 @@ export default defineComponent({
     const getTzlistDatas = async () => {
       let obj = { startTime: "2021-12-01", endTime: "2021-12-30" };
       let data = await getTzlistData(obj);
+      bankValue = data.bankMap.reduce((acc, sum, index, arr) => {
+        return acc + sum.totleAmount;
+      }, 0);
       bankData = data.bankMap.map((val) => {
         return {
           name: val.bnkname,
@@ -281,6 +319,7 @@ export default defineComponent({
           publicAmount: val.publicAmount,
         };
       });
+
       orgMap = data.orgMap.map((val) => {
         return {
           name: val.orgname,
@@ -290,13 +329,27 @@ export default defineComponent({
           publicAmount: val.publicAmount,
         };
       });
+      orgValue = data.orgMap.reduce((acc, sum, index, arr) => {
+        return acc + sum.totleAmount;
+      }, 0);
+      // console.log(bankValue);
+      // console.log(orgValue);
       pie(bankData);
       myChart.value.on("click", function (params) {
         // 控制台打印数据的名称
         dialogShow.value = true;
-        console.log(params);
         tableData.value = params.data.content;
-        console.log(tableData);
+        // console.log(tableData);
+      });
+
+      // legend
+      myChart.value.on("legendselectchanged", function (params) {
+        myChart.value.setOption({
+          legend: { selected: { [params.name]: true } },
+        });
+        dialogShow.value = true;
+        console.log(params);
+        // tableData.value = params.data.content;
       });
     };
     getTzlistDatas();
@@ -304,6 +357,8 @@ export default defineComponent({
     const getArriveDatas = async () => {
       let obj = { endTime: "2021-12-08" };
       acountRemind.acountRemindData = await getArriveData(obj);
+      // 第一次默认回流
+      accountValue.value = acountRemind.acountRemindData.content[0].bnkname;
     };
     getArriveDatas();
 
@@ -313,13 +368,14 @@ export default defineComponent({
       remindAccounts,
       accountIndex,
       selectIndex,
-      accountIndex,
       changeBank,
       changeAccount,
       sendOpenDialogBtn,
       dialogShow,
       accountdialogShow,
       tableData,
+      accountOpitons,
+      accountValue,
       ...toRefs(acountRemind),
     };
   },
@@ -335,7 +391,7 @@ export default defineComponent({
   .tit {
     font-size: 17px;
     color: #5e7691;
-    padding: 15px 0;
+    padding: 15px 0 10px 0;
     background: auto;
     &.one-line {
       padding-top: 0;
@@ -358,7 +414,7 @@ export default defineComponent({
       cursor: pointer;
       .bank-name {
         position: relative;
-        padding-right: 5px;
+        padding-right: 15px;
         transition: all 0.2s;
         color: var(--nosle-text-color);
         &.active {
@@ -455,6 +511,9 @@ export default defineComponent({
         margin: 0 auto;
         // height: 60px;
         // line-height: 60px;
+        &:hover {
+          opacity: 0.8;
+        }
         .el-button {
           min-height: auto;
           color: var(--sle-text-color);
@@ -471,19 +530,56 @@ export default defineComponent({
   .funk-pass {
     height: 420px;
     overflow-y: scroll;
-    padding: 0 25px;
+    padding: 0 15px;
+    ul {
+      padding: 0 40px;
+      li {
+        display: flex;
+        // text-align: center;
+        height: 20px;
+        margin: 10px 0;
+        .card {
+          width: 200px;
+          overflow: hidden;
+          .no {
+            // font-size: 17px;
+          }
+          .no-val {
+            padding-left: 5px;
+            color: #999;
+          }
+        }
+        .money-num {
+          flex: 1;
+          padding-left: 10px;
+          .no-val {
+            padding-left: 5px;
+            color: #999;
+          }
+        }
+      }
+    }
   }
   .account-pass {
     // padding: 20px;
     height: 420px;
     overflow-y: scroll;
-
+    padding: 0 30px 20px 30px;
+    ::v-deep .el-select {
+      margin-top: 30px;
+      width: 240px;
+      .el-input__inner {
+        height: 32px;
+        background: rgb(248, 247, 247);
+      }
+    }
     ul {
       .a-item {
         .tits {
           position: relative;
           height: 15px;
           margin-top: 30px;
+
           &::before {
             width: 10px;
             height: 10px;
@@ -517,6 +613,7 @@ export default defineComponent({
           }
           .a-l {
             text-align: left;
+            // width: 200px;
           }
           .a-c {
             color: #d6dee6;
@@ -532,10 +629,26 @@ export default defineComponent({
           }
           .tit-com {
             font-size: 16px;
+            width: 170px;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            font-weight: 600;
           }
         }
       }
     }
+  }
+}
+::v-deep .el-dialog {
+  font-weight: 500;
+  .el-dialog__header {
+    border-bottom: 1px solid var(--line-color);
+  }
+  .el-dialog__body {
+    // padding-top: 0;
+    // padding-left: 30px;
+    padding: 0 !important;
   }
 }
 </style>

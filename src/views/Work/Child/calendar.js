@@ -87,7 +87,7 @@ export default class Calendar {
         let getMonthDay = this._getWeekDay(); //几号
         let li = document.querySelectorAll('.dayLabel>.day');
         //创建当月日子模块
-        let dayIndex = this.createArray(getMonth, this.options.startOfWeek).map((day, i) => {
+         this.createArray(getMonth, this.options.startOfWeek).map((day, i) => {
             //判断日历起止
             i += date.countDay;
             li[i].textContent = i - date.countDay + 1;

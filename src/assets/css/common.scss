@@ -2,7 +2,7 @@
 .scrollbar-css {
   &::-webkit-scrollbar {
     // 滚动条的背景
-    width: 16px;
+    width: 0px;
     background: inherit;
     height: 14px;
   }
@@ -15,7 +15,7 @@
   }
 
   &::-webkit-scrollbar-track {
-    box-shadow: 1px 1px 5px #fff;
+    // box-shadow: 1px 1px 5px #fff;
   }
 
   &::-webkit-scrollbar-thumb {

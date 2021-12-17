@@ -70,3 +70,42 @@ export function getArriveData(obj) {
   }
   return axios.post(url, params);
 }
+
+
+
+// 到期月份提醒
+export function getMonthRemind(obj) {
+  let url = baseUrl + "/monthDueReminder";
+  let {
+    year,
+    month
+  } = obj;
+  let {
+    endTime
+  } = obj;
+  let params = {
+    tzid,
+    "userid": "14692",
+    year,
+    month,
+    "sysno": ""
+  }
+  return axios.post(url, params);
+}
+
+// 具体天数
+export function getDayRemind(obj) {
+  let url = baseUrl + "/dueReminder";
+  let {
+    startTime,
+    endTime,
+  } = obj;
+  let params = {
+    tzid,
+    "userid": "14692",
+    startTime,
+    endTime,
+    "sysno": ""
+  }
+  return axios.post(url, params);
+}

@@ -1,7 +1,6 @@
 <template>
   <div class="work-contain">
     <div class="left-content">
-      {{si}}
       <div class="t-content">
         <div class="tit one-line">账号资金总览</div>
         <div class="select-des">
@@ -11,7 +10,7 @@
           </div>
           <div class="time-content">
             <el-date-picker
-              v-model="value1"
+              v-model="lineTimeData"
               type="daterange"
               start-placeholder="开始日期"
               end-placeholder="结束日期"
@@ -39,7 +38,7 @@
         <FunkStock />
       </div>
     </div>
-    <div class="right-content">
+    <div class="right-content" @click="dayBtn">
       <div class="tit one-line">到期提醒</div>
       <div class="casdate">
         <div class="date-time">
@@ -52,29 +51,72 @@
 
         <CasDate />
       </div>
-      <div class="remind-content" @click="ss">提醒列表</div>
-      <div class="remind-list">
-        <div class="pay-item">
-          <div>
-            <span class="icon"></span>
-            <span class="des">大额转账支付预警</span>
-          </div>
-          <span class="time">2021.11.30</span>
-        </div>
-
-        <div class="pay-item">
-          <div>
-            <span class="icon"></span>
-            <span class="des">大额转账支付预警</span>
-          </div>
-          <span class="time">2021.11.30</span>
-        </div>
-        <div class="pay-item" ref="si">
-          <div>
-            <span class="icon"></span>
-            <span class="des">大额转账支付预警</span>
-          </div>
-          <span class="time">2021.11.30</span>
+      <div class="remind-content">
+        <el-divider content-position="left">提醒列表</el-divider>
+      </div>
+      <div class="remind-list scrollbar-css">
+        <template v-for="(val, index) in dayremind" :key="val">
+          <template v-for="(vals, indexs) in val" :key="indexs">
+            <div class="pay-item">
+              <div class="tit-line">
+                <div class="l-content">
+                  <span class="icon">{{ vals.name.substr(0, 1) }}</span>
+                  <span class="des">{{ vals.name }}</span>
+                </div>
+                <span class="time">{{ index }}</span>
+              </div>
+              <div class="two-line">
+                <div class="des">无备注</div>
+                <div class="expand" @click="vals.select = !vals.select">
+                  <div v-if="!vals.select">
+                    展开<el-icon> <arrow-down /></el-icon>
+                  </div>
+                  <div v-else>
+                    收起<el-icon><arrow-up /> </el-icon>
+                  </div>
+                </div>
+              </div>
+              <div class="e-content" v-if="vals.select">
+                <ul>
+                  <li class="money">
+                    <div class="num">{{ vals.ye }}</div>
+                    <div class="tits">金额(元)</div>
+                  </li>
+                  <li class="week-day">
+                    <div class="day">{{ vals.expiry || 0 }}</div>
+                    <div class="tits">剩余到期日</div>
+                  </li>
+                  <li>
+                    <span class="open">公司名称：</span
+                    ><span class="val">{{ vals.gsmc }}</span>
+                  </li>
+                  <li>
+                    <span class="open">期望：</span
+                    ><span class="val"
+                      >{{ vals.purpose }}sdfsfds fdg fdgfd
+                      第三方的个的广泛地刚发的某个地方了</span
+                    >
+                  </li>
+                  <li>
+                    <span class="open">公司银行：</span
+                    ><span class="val">{{ vals.gsyh }}</span>
+                  </li>
+                  <!-- <li>
+                <span class="open">开户人6565656565656</span><span class="val">吴伟</span>
+              </li> -->
+                  <li>
+                    <span class="open">开户人</span
+                    ><span class="val">吴伟</span>
+                  </li>
+                </ul>
+                <!-- "gsmc": "西藏领尚", "purpose": "", "yhzh": "", "gsyh":
+            "中国民生银行", "expiry": "2021-12font-size-24", "ye": 1000000 -->
+              </div>
+            </div>
+          </template>
+        </template>
+        <div v-if="Object.keys(dayremind).length == 0">
+          <img src="@/assets/img/noDataRemind.png" alt="" />
         </div>
       </div>
 
@@ -88,14 +130,10 @@
         <cas-date />
       </el-dialog>
     </div>
-
   </div>
 </template>
 
 <script>
-import Calendar from "mpvue-calendar";
-import { getRaiseMoney, getTzlistData } from "@/network/request.js";
-import { mapState } from "vuex";
 import {
   ref,
   watch,
@@ -107,15 +145,15 @@ import {
 } from "vue";
 import CasDate from "./Child/CasDate.vue";
 import FunkStock from "./Child/FunkStock.vue";
+import { ArrowUp, ArrowDown } from "@element-plus/icons";
+import { getMonthRemind, getDayRemind, getRaiseMoney } from "network/request";
+
 export default {
   name: "WorkIndex",
-data(){
-  return {si:3434}
-},
-  setup(props,{emit}) {
+  setup(props, { emit }) {
     const { proxy } = getCurrentInstance();
     let echarts = proxy.echarts;
-    const si=ref(null);
+    const openContent = ref(false);
     const state = reactive({
       shortcuts: [
         {
@@ -161,16 +199,59 @@ data(){
       value: "本月",
     });
     const dialogVisible = ref(false);
-    const remarks = ref({ "2021-11-13": "some tings" });
-    let xData = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun", "dsd"];
+
+    const remindData = reactive({
+      dayremind: {},
+      monthremind: {},
+    });
+    let lineTimeData = ref(["2021-12-1", "2021-12-15"]);
+    // const remarks = ref({ "2021-11-13": "some tings" });
+    let xData = [];
     let yData = [];
-    watchEffect(()=>{
-      console.log(dialogVisible.value);
-    })
+    // 请求资金总览数据
+    var getLineData = async (time) => {
+      let data = await getRaiseMoney(time);
+      xData = Object.keys(data.content);
+      yData = Object.values(data.content);
+      line(xData, yData);
+    };
+
+    const dayBtn = (e) => {
+      console.log(e.target);
+      // let parent = e.target.parentNode.parentNode.parentNode.querySelector(".days");
+      // console.log(parent);
+      // Array.from(parent.querySelectorAll(".dayLabel")).forEach((val) => {
+      //   val.classList.remove("today");
+      // });
+      // e.target.parentNode.classList.add("today");
+
+      // let obj = {
+      //   year: 2021,
+      //   month: 12,
+      //   startTime: "2021-12-19",
+      //   endTime: "2021-12-19",
+      // };
+      // getDayRemind(obj).then((da) => {
+      //   for (let i in da) {
+      //     da[i] = da[i].map((val) => {
+      //       val.select = false;
+      //       return val;
+      //     });
+      //   }
+
+      //   remindData.dayremind = da;
+      // });
+    };
+
     watch(
-      () => state.value1,
+      lineTimeData,
       (newVal) => {
-        console.log(newVal[0]);
+        console.log(newVal);
+        let time = { startTime: newVal[0], endTime: newVal[1] };
+        getLineData(time);
+      },
+      {
+        immediate: true,
       }
     );
     // 线性
@@ -181,7 +262,7 @@ data(){
       option = {
         xAxis: {
           type: "category",
-          boundaryGap: false,
+          // boundaryGap: false,
           // data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun","dsd"],
           data: xData,
         },
@@ -194,9 +275,13 @@ data(){
             type: "line",
             // areaStyle: {},
             // symbol: "circle", // 默认是空心圆（中间是白色的），改成实心圆
-            showAllSymbol: true,
-            symbolSize: 0,
+            // showAllSymbol: true,
+            symbolSize: 8,
             smooth: true, //平滑
+            label: {
+              show: true,
+              position: "top",
+            },
             lineStyle: {
               normal: {
                 width: 2.5,
@@ -276,35 +361,49 @@ data(){
       option && myChart.setOption(option);
     }
 
-    onMounted(() => {
-      console.log(si.value);
+    onMounted(() => {});
+
+    const expandRange = () => {
+      openContent.value = !openContent.value;
+    };
+
+    let obj = {
+      year: 2021,
+      month: 12,
+      startTime: "2021-12-19",
+      endTime: "2021-12-19",
+    };
+    getMonthRemind(obj).then((da) => {
+      console.log(da);
+      remindData.monthData = da;
+    });
+    // console.log(calendar.value);
+    getDayRemind(obj).then((da) => {
+      for (let i in da) {
+        da[i] = da[i].map((val) => {
+          val.select = false;
+          return val;
+        });
+      }
+
+      remindData.dayremind = da;
     });
 
-    // 请求资金总览数据
-    const getLineData = async () => {
-      let obj = { startTime: "2021-12-01", endTime: "2021-12-30" };
-      let data = await getRaiseMoney(obj);
-      xData = Object.keys(data.content);
-      yData = Object.values(data.content);
-      console.log(yData);
-      line(xData, yData);
-    };
-    
-
-    let $els={el:null};
-    getLineData();
     return {
-      remarks,
       dialogVisible,
+      expandRange,
+      openContent,
       ...toRefs(state),
-      si
+      ...toRefs(remindData),
+      lineTimeData,
+      dayBtn,
     };
   },
   components: {
-    Calendar,
     CasDate,
     FunkStock,
-    
+    ArrowDown,
+    ArrowUp,
   },
 };
 </script>
@@ -322,7 +421,7 @@ data(){
   .tit {
     font-size: 17px;
     color: #5e7691;
-    padding: 15px 0;
+    padding: 10px 0;
     background: auto;
     &.one-line {
       padding-top: 0;
@@ -482,6 +581,7 @@ data(){
         background: #fff;
         padding: 15px 30px;
         .nowday-content {
+          padding-left: 16px;
           .now {
             color: var(--nosle-text-color);
             position: relative;
@@ -528,22 +628,17 @@ data(){
     }
   }
   .right-content {
-    // background: #fff;
-    // border: 1px solid rgb(100, 32, 32);
-    width: 280px;
+    width: 320px;
     height: 100%;
     .casdate {
       // height: 360px;
       background: #fff;
       .select-mode {
       }
-      .mpvue-calendar {
-        width: 300px;
-      }
       .date-time {
         display: flex;
         justify-content: space-between;
-        padding: 20px 20px 10px 20px;
+        padding: 14px 20px 0px 20px;
         .l {
           .day {
             font-size: 17px;
@@ -557,39 +652,154 @@ data(){
       }
     }
     .remind-list {
-      height: calc(100% - 400px);
+      // border: 1px solid red;
+      height: calc(100% - 420px);
       // border: 1px solid #000;
       background: #fff;
+      overflow-y: scroll;
+      position: relative;
       .pay-item {
-        height: 20px;
-        display: flex;
-        align-items: center;
-        padding: 15px;
-        display: flex;
-        justify-content: space-between;
-        font-size: 14px;
-        // margin: 10px 0;
-        margin-bottom: 20px;
-        .icon {
-          display: inline-block;
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          line-height: 8px;
-          background: linear-gradient(225deg, #ff7a75 0%, #fe4440 100%);
+        // height: 20px;
+        padding: 0 15px;
+        margin-bottom: 25px;
+        .tit-line {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 8px;
+          .l-content {
+            display: flex;
+            align-items: center;
+            .icon {
+              display: inline-block;
+              width: 18px;
+              height: 18px;
+              border-radius: 50%;
+              line-height: 18px;
+              text-align: center;
+              //   line-height: 8px;
+              font-size: 11px;
+              color: #fff;
+              background: linear-gradient(225deg, #ff7a75 0%, #fe4440 100%);
+              margin-right: 3px;
+            }
+            .des {
+              font-size: 15px;
+              color: var(--text-color);
+            }
+          }
+          .time {
+            font-size: 13px;
+          }
         }
-        .des {
-          padding-left: 6px;
+        .two-line {
+          display: flex;
+          justify-content: space-between;
+          font-size: 13px;
+          .expand {
+            color: var(--sle-text-color);
+            cursor: pointer;
+            & > div {
+              display: flex;
+              align-items: center;
+            }
+          }
+          .des {
+            padding-left: 24px;
+            color: #5e7691;
+          }
         }
-        .time {
-          color: var(--nosle-text-color);
+        .e-content {
+          font-size: 14px;
+          font-weight: 500;
+          ul {
+            display: flex;
+            padding: 20px 20px 0px 20px;
+            flex-wrap: wrap;
+            li {
+              width: 100%;
+              text-align: left;
+              border-bottom: 1px solid #eaf2fa;
+              margin-bottom: 5px;
+              height: 28px;
+              display: flex;
+              align-items: center;
+              overflow: hidden;
+              margin-left: 24px;
+              &.week-day,
+              &.money {
+                flex-direction: column;
+                margin-left: 0;
+                width: 50%;
+                height: 50px;
+                text-align: center;
+                font-weight: 600;
+              }
+              &.week-day {
+                color: #fe4440;
+                .day {
+                  font-size: 18px;
+                }
+              }
+              &.money {
+                // color: red;
+                .num {
+                  font-size: 18px;
+                }
+                .tits {
+                  color: var(--nosle-text-color);
+                }
+              }
+
+              .open {
+                color: var(--nosle-text-color);
+                padding-right: 5px;
+                display: inline-block;
+                width: 80px;
+              }
+              .val {
+                display: inline-block;
+                width: 130px;
+                // font-size: 14px;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+              }
+            }
+          }
         }
+
+        // .des {
+        //   padding-left: 6px;
+        // }
+        // .time {
+        //   color: var(--nosle-text-color);
+        // }
+      }
+      img {
+        width: 60%;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin: auto;
       }
     }
     .remind-content {
-      padding: 20px 0 15px 15px;
+      // padding: 15px 0 15px 15px;
       background: #fff;
-      font-size: 15px;
+      font-size: 16px;
+      padding: 30px 0;
+      ::v-deep .el-divider {
+        // background: #fff;
+        margin: 0;
+        .el-divider__text {
+          font-size: 16px;
+          font-weight: 600;
+          color: var(--text-color);
+        }
+      }
     }
   }
   ::v-deep .el-dialog {
@@ -597,8 +807,9 @@ data(){
       border-bottom: 1px solid var(--line-color);
     }
     .el-dialog__body {
-      padding-top: 0;
-      padding-left: 30px;
+      // padding-top: 0;
+      // padding-left: 30px;
+      padding: 0 10px 10px 30px;
     }
     .account-pass {
       // padding: 20px;
@@ -639,7 +850,7 @@ data(){
             padding: 0 10px;
             .mar {
               padding: 4px 0 6px 0;
-              font-size: 14px;
+              font-size: 13px;
               color: #5e7691;
             }
             .a-l {
