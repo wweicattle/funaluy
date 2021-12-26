@@ -15,16 +15,16 @@
       </nav>
     </div>
     <div class="calendar-date">
-      <div class="calendar" ref="calendar"></div>
+      <div class="calendar" ref="calendar" @click="faBtn"></div>
       <div class="remind-text">
         <div class="item">
           <span class="icon"></span>
-          <span class="destail">大额预警</span>
+          <span class="destail">到期预警</span>
         </div>
-        <div class="item">
+        <!-- <div class="item">
           <span class="icon"></span>
           <span class="destail">大额预警</span>
-        </div>
+        </div> -->
       </div>
     </div>
 
@@ -43,19 +43,32 @@
 </template>
 
 <script>
-import Calendar from "./calendar.js";
-import { defineComponent } from "vue";
-import { reactive, ref, onMounted, toRefs } from "vue";
+import Calendar, { fragment, dayNum } from "./calendar.js";
+import {
+  reactive,
+  ref,
+  onMounted,
+  toRefs,
+  nextTick,
+  defineComponent,
+  watch,
+  watchEffect,
+} from "vue";
 import { getMonthRemind, getDayRemind } from "network/request";
-
+import { useStore } from "@/store/index.js";
+console.log(useStore);
 export default defineComponent({
   name: "Casdate",
-  setup() {
+  setup(prop, { emit }) {
+    let stateData = useStore();
+    console.log(stateData);
+    // stateData.EDIT_SELECTTIME("2021-5-2");
     let calendar = ref(null);
     let monthRemind = reactive({
       monthData: {},
     });
-    onMounted(() => {
+    onMounted(async () => {
+      await nextTick();
       let calendars = new Calendar({
         element: calendar.value,
       });
@@ -68,9 +81,45 @@ export default defineComponent({
       today.onclick = function () {
         calendars.resetMonth();
       };
+      // console.log(calendar.value.querySelector(".day").);
+      calendar.value.querySelectorAll(".day").forEach((val) => {
+        var arr=[19,17,18,21,23,22,24]
+        // arr.some(vals=>{
+        //   return vals==val.innerText;
+        // })
+        console.log(val.innerText);
+        // console.log(arr.includes(Number(val.innerText)));
+        if (arr.includes(Number(val.innerText))) {
+          val.classList.add('state');
+        }
+
+        //   val.addEventListener(
+        //     "click",
+        //     (e) => {
+        //       // document.querySelectorAll(".day").forEach((val) => {
+        //       //   if (val.classList.contains("today"))
+        //       //     val.classList.remove("today");
+        //       // });
+        //       console.log(e.target);
+        //       // e.target.classList.add("today");
+        //       e.stopPropagation();
+        //       return false;
+        //     },
+        //     false
+        //   );
+      });
     });
 
-    // let obj = {
+    watchEffect(() => {
+      console.log(stateData.selectTime);
+      emit("refreshData", stateData.selectTime);
+    });
+    // watch(()=>stateData.$state,(newVal)=>{
+    //   console.log(newVal);
+    // },{
+    //   deep:true,immediate:true
+    // })
+    // let$state,()=> obj = {
     //   year: 2021,
     //   month: 12,
     //   startTime: "2021-12-1",
@@ -168,7 +217,7 @@ export default defineComponent({
     z-index: 100;
     padding: 0 12px;
     .remind-text {
-      padding: 10px 15px 0 25px;
+      padding: 4px 15px 0 25px;
       display: flex;
       align-items: center;
       .item {
@@ -202,7 +251,7 @@ export default defineComponent({
   .calendar {
     // flex-grow: 0.5;
     // border: 1px solid red;
-    height: 230px;
+    height: 240px;
     display: flex;
     flex-direction: column;
   }
@@ -228,12 +277,13 @@ export default defineComponent({
   .calendar > ol.days {
     display: flex;
     flex-wrap: wrap;
-    height: 210px;
+    // border: 1px solid red;
+    // height: 210px;
     // flex-grow: 1;
   }
 
   .calendar > ol.days > li {
-    width: 14.2857%;
+    width: calc(100% / 7);
     // border-right: 1px solid #c7c7cc;
     // border-top: 1px solid #c7c7cc;
     position: relative;
@@ -241,6 +291,7 @@ export default defineComponent({
     align-items: center;
     justify-content: center;
     font-size: 13px;
+    margin: 8px 0;
     cursor: pointer;
     &:hover {
       opacity: 0.8;
@@ -250,28 +301,62 @@ export default defineComponent({
   .calendar > ol.days > li:nth-child(7n) {
     border-right: none;
   }
-  .calendar .today .day {
-    background: linear-gradient(148deg, #4749ff 0%, #004bee 100%);
-    width: 1.6em;
-    display: inline-block;
-    text-align: center;
-    height: 1.6em;
-    line-height: 1.6em;
-    border-radius: 50%;
-    color: white;
+
+  .days .day {
     position: relative;
-    // &::after {
-    //   content: "";
-    //   position: absolute;
-    //   bottom: -4px;
-    //   left: 0;
-    //   right: 0;
-    //   width: 5px;
-    //   height: 5px;
-    //   margin: 0 auto;
-    //   border-radius: 50%;
-    //   background: red;
-    // }
+    &.today {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      top: 0;
+      margin: auto;
+      background: linear-gradient(148deg, #4749ff 0%, #004bee 100%);
+      width: 26px;
+      // display: inline-block;
+      text-align: center;
+      height: 26px;
+      line-height: 26px;
+      border-radius: 50%;
+      color: #fff;
+      // position: relative;
+      // &::after {
+      //   content: "";
+      //   position: absolute;
+      //   bottom: -4px;
+      //   left: 0;
+      //   right: 0;
+      //   width: 5px;
+      //   height: 5px;
+      //   margin: 0 auto;
+      //   border-radius: 50%;
+      //   background: red;
+      // }
+    }
+    &.state {
+      // position: absolute;
+      // left: 0;
+      // right: 0;
+      // bottom: 0;
+      // margin: auto;
+      // background: linear-gradient(148deg, #4749ff 0%, #004bee 100%);
+      // border-radius: 50%;
+      // color: red;
+      // width: 13px;;
+      // height: 13px;
+      &::after {
+        content: "";
+        position: absolute;
+        bottom: -8px;
+        left: 0;
+        right: 0;
+        width: 5px;
+        height: 5px;
+        margin: 0 auto;
+        border-radius: 50%;
+        background: red;
+      }
+    }
   }
 
   .calendar .weekdays .weekend {

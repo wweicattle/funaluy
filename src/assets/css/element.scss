@@ -1,7 +1,23 @@
-.el-main{
+.el-main {
     margin: 0;
     padding: 0 !important;
 }
-.el-select{
 
+.el-dialog {
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 80px
+}
+.el-overlay-dialog{
+    overflow: hidden;
+}
+
+.el-popover {
+    width: 364px !important;
+}
+
+::v-deep .el-timeline-item{
+    .el-timeline-item__timestamp{
+        font-size: 17px;
+    }
 }

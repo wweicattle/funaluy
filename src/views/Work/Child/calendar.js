@@ -1,3 +1,10 @@
+import {
+    useStore
+} from '@/store/index.js'
+
+
+var fragment;
+let dayNum = [];
 let dom = {
     create(html) {
         let template = document.createElement('template');
@@ -25,9 +32,7 @@ export default class Calendar {
                     return map[n];
                 },
                 templateDay: `<li class="currentMonth">
-                    <span class="dayLabel">
-                        <span class="day"></span>
-                    </span>
+                        <span class="day" ></span>
                 </li>`
             },
             days: {},
@@ -85,15 +90,18 @@ export default class Calendar {
         let getWeek = this._getWeekWeek(date.year, date.month - 1, date.day); //星期几
         let getMonth = this._getMonth(date.year, date.month) //月份天数
         let getMonthDay = this._getWeekDay(); //几号
-        let li = document.querySelectorAll('.dayLabel>.day');
+        let li = document.querySelectorAll('.day');
         //创建当月日子模块
-         this.createArray(getMonth, this.options.startOfWeek).map((day, i) => {
+        this.createArray(getMonth, this.options.startOfWeek).map((day, i) => {
             //判断日历起止
             i += date.countDay;
             li[i].textContent = i - date.countDay + 1;
+            // dayNum.push((i - date.countDay + 1))
             //判断是否为今天
             if (i == (getMonthDay + date.countDay - 1) && date.noMonth == date.month && date.noYear == date.year) {
-                li[i].parentNode.classList.add('today');
+                li[i].classList.add('today');
+                // li[i].classList.add('state');
+
             }
         });
         date.countDay += getMonth;
@@ -113,22 +121,44 @@ export default class Calendar {
 
         let calendar = document.querySelector('.calendar');
         let ol = dom.create(`<ol class="days"></ol>`);
-        let li = document.querySelectorAll('.dayLabel>.day');
+        let li = document.querySelectorAll('.day');
         calendar.appendChild(ol);
 
         date.countDay = 0;
         beginWeek == 0 ? beginWeek += 7 : ''; //如果月份开头为星期日，会出bug，这是防止
         date.countDay += beginWeek;
+        fragment = document.createDocumentFragment();
         this.createArray(42, this.options.startOfWeek).map((day, i) => {
             let li = dom.create(this.options.strings.templateDay);
-            let span = li.querySelector('.dayLabel>.day');
-            if (i < beginWeek) {
-                span.textContent = countMonth - beginWeek + 1 + i;
-            }
-            ol.appendChild(li);
-        });
+            li.dataset.month = month
+            li.dataset.year = year
 
-        document.querySelector('.date').appendChild(dom.create(`<p data-role="time">${date.year}-${date.month}-${date.day}</p>`));
+            // console.log(li.querySelector(".day"));
+            let span = li.querySelector('.day');
+
+            if (i < beginWeek) {
+                span.textContent = (countMonth - beginWeek + 1 + i);
+
+            }
+            fragment.appendChild(li);
+            li.addEventListener("click", (e) => {
+                document.querySelectorAll(".day").forEach(val => {
+                    if (val.classList.contains("today")) val.classList.remove("today");
+                })
+                let stateData = useStore();
+                stateData.EDIT_SELECTTIME(`${year}-${month}-${span.textContent}`);
+                e.target.classList.add("today");
+                e.stopPropagation();
+                return false;
+            }, false)
+
+
+
+
+        });
+        ol.appendChild(fragment);
+
+        document.querySelector('.date').appendChild(dom.create(`<p data-role="time">${date.year}-${date.month}</p>`));
         this._generateCurrentDay()._generateNextMonth();
     }
 
@@ -139,7 +169,7 @@ export default class Calendar {
         let month = date.month;
         let beginWeek = this._getWeekWeek(year, month, 1); //开始星期
         let countMonth = this._getMonth(year, month + 1); //下月月份天数
-        let li = document.querySelectorAll('.dayLabel>.day');
+        let li = document.querySelectorAll('.day');
         this.createArray(42 - date.countDay, this.options.startOfWeek).map((day, i) => {
             li[date.countDay + i].textContent = i + 1;
         });
@@ -208,4 +238,10 @@ export default class Calendar {
         this._generateCalendar();
         this._generatePrevMonth();
     }
+}
+
+
+export {
+    fragment,
+    dayNum
 }

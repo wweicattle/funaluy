@@ -10,6 +10,10 @@ import 'element-plus/dist/index.css'
 import "@/assets/css/base.css"
 import  "@/assets/css/common.scss"
 import * as echarts from 'echarts/core';
+
+
+import { createPinia } from 'pinia'
+
 import {
     BarChart,
     LineChart,
@@ -39,4 +43,4 @@ const app = createApp(App)
 app.config.globalProperties.foo = 'bar';
 app.config.globalProperties.echarts = echarts
 installElementPlus(app)
-app.use(store).use(router).mount('#app');
+app.use(store).use(createPinia()).use(router).mount('#app');

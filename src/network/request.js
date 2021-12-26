@@ -1,11 +1,13 @@
 import axios from "./axios.js"
 // import store from "../store"
 let baseUrl;
-if (process.env.NODE_ENV == "development") {
-  baseUrl = "/api";
-} else {
-  baseUrl = "../../api/reqRedirect.ashx?action=reqRedirect ";
-}
+// if (process.env.NODE_ENV == "development") {
+  baseUrl = "http://192.168.37.44:9502/money";
+  // baseUrl = "/api";
+
+// } else {
+//   baseUrl = "../../api/reqRedirect.ashx?action=reqRedirect ";
+// }
 // default tzid
 let tzid = 1;
 

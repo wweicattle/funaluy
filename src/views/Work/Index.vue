@@ -6,9 +6,28 @@
         <div class="select-des">
           <div class="nowday-content">
             <div class="now">当日汇总</div>
-            <div class="num">1832.6W</div>
+            <div class="num">{{ curTotal }}W</div>
           </div>
           <div class="time-content">
+            <ul class="selectItems">
+              <template v-for="(val, index) in selectWeek" :key="index">
+                <li
+                  @click="clickChangeDay(index)"
+                  :class="{ active: weekIndex == index }"
+                >
+                  {{ val }}
+                </li>
+              </template>
+            </ul>
+            <!-- <el-select size="small" v-model="value" placeholder="请选择">
+              <el-option
+                v-for="item in options"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              >
+              </el-option>
+            </el-select> -->
             <el-date-picker
               v-model="lineTimeData"
               type="daterange"
@@ -19,15 +38,7 @@
               size="small"
             >
             </el-date-picker>
-            <el-select size="small" v-model="value" placeholder="请选择">
-              <el-option
-                v-for="item in options"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-              >
-              </el-option>
-            </el-select>
+            <span class="d-num">单位(万)</span>
           </div>
         </div>
         <div class="line">
@@ -46,26 +57,34 @@
             <span class="day">02</span>
             <span class="week">星期二</span>
           </div>
-          <span class="r">20oc</span>
+          <span class="r">30°</span>
         </div>
 
-        <CasDate />
+        <CasDate @refreshData="refreshData" />
       </div>
+
+      <!--  -->
       <div class="remind-content">
         <el-divider content-position="left">提醒列表</el-divider>
       </div>
       <div class="remind-list scrollbar-css">
         <template v-for="(val, index) in dayremind" :key="val">
           <template v-for="(vals, indexs) in val" :key="indexs">
-            <div class="pay-item">
-              <div class="tit-line">
-                <div class="l-content">
-                  <span class="icon">{{ vals.name.substr(0, 1) }}</span>
-                  <span class="des">{{ vals.name }}</span>
-                </div>
-                <span class="time">{{ index }}</span>
-              </div>
-              <div class="two-line">
+            <el-popover placement="left" :width="400" trigger="hover">
+              <template #reference>
+                <div class="pay-item cursor flex-cnter">
+                  <div class="tit-line">
+                    <div class="l-content">
+                      <span class="icon">{{ vals.name.substr(0, 1) }}</span>
+                      <span class="des">{{ vals.name }}</span>
+                      <span class="nums">{{ vals.total }}</span>
+                    </div>
+                    <span class="time">{{ index }}</span>
+                  </div>
+                  <!-- {{val}}
+              ------------------------
+              {{vals}} -->
+                  <!-- <div class="two-line">
                 <div class="des">无备注</div>
                 <div class="expand" @click="vals.select = !vals.select">
                   <div v-if="!vals.select">
@@ -75,44 +94,99 @@
                     收起<el-icon><arrow-up /> </el-icon>
                   </div>
                 </div>
-              </div>
-              <div class="e-content" v-if="vals.select">
-                <ul>
-                  <li class="money">
-                    <div class="num">{{ vals.ye }}</div>
-                    <div class="tits">金额(元)</div>
-                  </li>
-                  <li class="week-day">
-                    <div class="day">{{ vals.expiry || 0 }}</div>
-                    <div class="tits">剩余到期日</div>
-                  </li>
-                  <li>
-                    <span class="open">公司名称：</span
-                    ><span class="val">{{ vals.gsmc }}</span>
-                  </li>
-                  <li>
-                    <span class="open">期望：</span
-                    ><span class="val"
-                      >{{ vals.purpose }}sdfsfds fdg fdgfd
-                      第三方的个的广泛地刚发的某个地方了</span
+              </div> -->
+                </div>
+                <!-- <el-button>Click to activate</el-button> -->
+              </template>
+              <div class="picket-contains scrollbar-css">
+                <div class="tit spe">{{ vals.name}}</div>
+                <div class="items">
+                  <el-timeline>
+                    <template
+                      v-for="(item, iIndex) in vals.content"
+                      :key="iIndex"
                     >
-                  </li>
-                  <li>
-                    <span class="open">公司银行：</span
-                    ><span class="val">{{ vals.gsyh }}</span>
-                  </li>
-                  <!-- <li>
+                      <el-timeline-item
+                        :timestamp="item.expiry"
+                        placement="top"
+                      >
+                        <el-card>
+                          <div class="e-content">
+                            <div class="tit flex-center">
+                              <div class="icon"></div>
+                              <div>{{ item.gsyh }}</div>
+                              <div>{{ item.yhzh }}</div>
+                            </div>
+                            <ul>
+                              <li class="money">
+                                <div class="num">{{ item.ye || 0 }}</div>
+                                <div class="tits">金额(元)</div>
+                              </li>
+                              <li class="week-day">
+                                <div class="day">{{ item.diffday || 0 }}</div>
+                                <div class="tits">剩余到期日</div>
+                              </li>
+                              <!-- <li>
+                                <span class="open">公司名称：</span>
+                                <el-tooltip
+                                  class="item"
+                                  effect="dark"
+                                  content="Top Left prompts info"
+                                  placement="top-start"
+                                >
+                                  <span class="val">{{
+                                    item.gsmc || 3243434
+                                  }}</span>
+                                </el-tooltip>
+                              </li> -->
+
+                              <li>
+                                <span class="open">公司名称：</span>
+                                <el-tooltip
+                                  class="item"
+                                  effect="dark"
+                                  :content="item.gsmc"
+                                  placement="top-start"
+                                >
+                                  <span class="val">{{ item.gsmc }}</span>
+                                </el-tooltip>
+                              </li>
+                              <li>
+                                <span class="open">期望：</span>
+                                <el-tooltip
+                                  class="item"
+                                  effect="dark"
+                                  :content="item.purpose"
+                                  placement="top-start"
+                                >
+                                  <span class="val">{{ item.purpose }}</span>
+                                </el-tooltip>
+                              </li>
+                              <!-- <li>
                 <span class="open">开户人6565656565656</span><span class="val">吴伟</span>
               </li> -->
-                  <li>
-                    <span class="open">开户人</span
-                    ><span class="val">吴伟</span>
-                  </li>
-                </ul>
-                <!-- "gsmc": "西藏领尚", "purpose": "", "yhzh": "", "gsyh":
+                              <!-- <li>
+                                <span class="open">开户人</span>
+                                <el-tooltip
+                                  class="item"
+                                  effect="dark"
+                                  content="Top Left prompts info"
+                                  placement="top-start"
+                                >
+                                  <span class="val">{{ vals.gsmc }}</span>
+                                </el-tooltip>
+                              </li> -->
+                            </ul>
+                            <!-- "gsmc": "西藏领尚", "purpose": "", "yhzh": "", "gsyh":
             "中国民生银行", "expiry": "2021-12font-size-24", "ye": 1000000 -->
+                          </div>
+                        </el-card>
+                      </el-timeline-item>
+                    </template>
+                  </el-timeline>
+                </div>
               </div>
-            </div>
+            </el-popover>
           </template>
         </template>
         <div v-if="Object.keys(dayremind).length == 0">
@@ -204,43 +278,66 @@ export default {
       dayremind: {},
       monthremind: {},
     });
-    let lineTimeData = ref(["2021-12-1", "2021-12-15"]);
-    // const remarks = ref({ "2021-11-13": "some tings" });
+    let start_time = dayjs().startOf("week").add(1, "day").format("YYYY-MM-DD");
+    let monthNow = dayjs().format("YYYY-MM-DD");
+    let lineTimeData = ref(["2021-12-01", "2021-12-06"]);
     let xData = [];
     let yData = [];
+
+    let curTotal = ref(0);
+
+    const selectWeek = ref(["月", "周", "自定义"]);
+    // 月周点击
+    const clickChangeDay = (index) => {
+      weekIndex.value = index;
+      // 改变视图
+      if (index == 0) {
+        let monthOne = dayjs().startOf("months").format("YYYY-MM-DD");
+        let monthNow = dayjs().format("YYYY-MM-DD");
+
+        let time = { startTime: monthOne, endTime: monthNow };
+        lineTimeData.value = [monthOne, monthNow];
+        getLineData(time);
+      } else if (index == 1) {
+        let start_time = dayjs()
+          .startOf("week")
+          .add(1, "day")
+          .format("YYYY-MM-DD");
+        let monthNow = dayjs().format("YYYY-MM-DD");
+        let time = { startTime: start_time, endTime: monthNow };
+        lineTimeData.value = [start_time, monthNow];
+        getLineData(time);
+      } else {
+      }
+    };
     // 请求资金总览数据
     var getLineData = async (time) => {
       let data = await getRaiseMoney(time);
+      curTotal.value = data.curAmount;
       xData = Object.keys(data.content);
       yData = Object.values(data.content);
       line(xData, yData);
     };
+    const weekIndex = ref(2);
 
-    const dayBtn = (e) => {
-      console.log(e.target);
-      // let parent = e.target.parentNode.parentNode.parentNode.querySelector(".days");
-      // console.log(parent);
-      // Array.from(parent.querySelectorAll(".dayLabel")).forEach((val) => {
-      //   val.classList.remove("today");
-      // });
-      // e.target.parentNode.classList.add("today");
+    const dayBtn = (e) => {};
+    const refreshData = (val) => {
+      let obj = {
+        year: 2021,
+        month: 12,
+        startTime: val,
+        endTime: val,
+      };
+      getDayRemind(obj).then((da) => {
+        for (let i in da) {
+          da[i] = da[i].map((val) => {
+            val.select = false;
+            return val;
+          });
+        }
 
-      // let obj = {
-      //   year: 2021,
-      //   month: 12,
-      //   startTime: "2021-12-19",
-      //   endTime: "2021-12-19",
-      // };
-      // getDayRemind(obj).then((da) => {
-      //   for (let i in da) {
-      //     da[i] = da[i].map((val) => {
-      //       val.select = false;
-      //       return val;
-      //     });
-      //   }
-
-      //   remindData.dayremind = da;
-      // });
+        remindData.dayremind = da;
+      });
     };
 
     watch(
@@ -281,6 +378,9 @@ export default {
             label: {
               show: true,
               position: "top",
+              fontWeight: 500,
+              fontSize: 13,
+              color: "#004BEE",
             },
             lineStyle: {
               normal: {
@@ -322,10 +422,10 @@ export default {
           },
         ],
         grid: {
-          left: "100px",
-          top: "16px",
-          right: "30px",
-          bottom: "36px",
+          left: "8%",
+          top: "18%",
+          right: "4%",
+          bottom: "15%",
         },
         tooltip: {
           trigger: "axis",
@@ -340,7 +440,7 @@ export default {
           borderWidth: 1,
           formatter: function (params) {
             // console.log(params);
-            let str = "当日金额:" + params[0].data + "元";
+            let str = "当日金额:" + params[0].data + "万元";
             // for (let i = 0; i < params.length; i++) {
             //   if (i == 0) {
             //     str += `${params[i].name}<br/>${params[i].seriesName.slice(
@@ -370,8 +470,8 @@ export default {
     let obj = {
       year: 2021,
       month: 12,
-      startTime: "2021-12-19",
-      endTime: "2021-12-19",
+      startTime: "2021-12-24",
+      endTime: "2021-12-24",
     };
     getMonthRemind(obj).then((da) => {
       console.log(da);
@@ -397,6 +497,11 @@ export default {
       ...toRefs(remindData),
       lineTimeData,
       dayBtn,
+      selectWeek,
+      weekIndex,
+      clickChangeDay,
+      curTotal,
+      refreshData,
     };
   },
   components: {
@@ -608,16 +713,51 @@ export default {
           align-items: center;
           ::v-deep .el-date-editor {
             width: 240px;
-          }
-          ::v-deep .el-select {
-            width: 84px;
-            font-weight: 600;
-            .el-input__inner {
-              border: none;
-              padding: 0;
-              text-align: center;
+
+            .el-range-separator {
+              line-height: 18px;
             }
           }
+          .d-num {
+            padding: 0 16px;
+          }
+          ::v-deep .el-input__inner {
+            height: 28px;
+          }
+
+          .selectItems {
+            display: flex;
+            border: 1px solid #d6dee6;
+            height: 28px;
+            line-height: 28px;
+            font-weight: 500;
+            color: #94979e;
+            margin-right: 14px;
+            // var(--el-input-border,var(--el-border-base))
+            li {
+              padding: 0 7px;
+              border-right: 1px solid #ccc;
+              &:last-child {
+                border-right: none;
+              }
+              &:hover {
+                cursor: pointer;
+              }
+              &.active {
+                background: var(--sle-text-color);
+                color: #fff;
+              }
+            }
+          }
+          // ::v-deep .el-select {
+          //   width: 84px;
+          //   font-weight: 600;
+          //   .el-input__inner {
+          //     border: none;
+          //     padding: 0;
+          //     text-align: center;
+          //   }
+          // }
         }
       }
       .line {
@@ -660,13 +800,15 @@ export default {
       position: relative;
       .pay-item {
         // height: 20px;
-        padding: 0 15px;
-        margin-bottom: 25px;
+        // border: 1px solid red;
+        padding: 20px 15px;
+        box-shadow: 0px 0px 6px 0px rgba(184, 191, 207, 0.3);
+        border-radius: 4px;
         .tit-line {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 8px;
+          // margin-bottom: 8px;
           .l-content {
             display: flex;
             align-items: center;
@@ -686,6 +828,10 @@ export default {
             .des {
               font-size: 15px;
               color: var(--text-color);
+            }
+            .nums {
+              color: #fe4440;
+              padding-left: 14px;
             }
           }
           .time {
@@ -709,65 +855,6 @@ export default {
             color: #5e7691;
           }
         }
-        .e-content {
-          font-size: 14px;
-          font-weight: 500;
-          ul {
-            display: flex;
-            padding: 20px 20px 0px 20px;
-            flex-wrap: wrap;
-            li {
-              width: 100%;
-              text-align: left;
-              border-bottom: 1px solid #eaf2fa;
-              margin-bottom: 5px;
-              height: 28px;
-              display: flex;
-              align-items: center;
-              overflow: hidden;
-              margin-left: 24px;
-              &.week-day,
-              &.money {
-                flex-direction: column;
-                margin-left: 0;
-                width: 50%;
-                height: 50px;
-                text-align: center;
-                font-weight: 600;
-              }
-              &.week-day {
-                color: #fe4440;
-                .day {
-                  font-size: 18px;
-                }
-              }
-              &.money {
-                // color: red;
-                .num {
-                  font-size: 18px;
-                }
-                .tits {
-                  color: var(--nosle-text-color);
-                }
-              }
-
-              .open {
-                color: var(--nosle-text-color);
-                padding-right: 5px;
-                display: inline-block;
-                width: 80px;
-              }
-              .val {
-                display: inline-block;
-                width: 130px;
-                // font-size: 14px;
-                overflow: hidden;
-                white-space: nowrap;
-                text-overflow: ellipsis;
-              }
-            }
-          }
-        }
 
         // .des {
         //   padding-left: 6px;
@@ -776,6 +863,7 @@ export default {
         //   color: var(--nosle-text-color);
         // }
       }
+
       img {
         width: 60%;
         position: absolute;
@@ -790,7 +878,7 @@ export default {
       // padding: 15px 0 15px 15px;
       background: #fff;
       font-size: 16px;
-      padding: 30px 0;
+      padding: 43px 0 15px 0;
       ::v-deep .el-divider {
         // background: #fff;
         margin: 0;
@@ -872,6 +960,125 @@ export default {
               font-size: 16px;
             }
           }
+        }
+      }
+    }
+  }
+}
+
+.picket-contains {
+  // width: 300px;
+  // padding: 10px;
+  height: 500px;
+  // border: 1px solid red;
+  overflow: scroll;
+  ::v-deep .el-card__body {
+    padding: 0;
+  }
+  .tit {
+    margin: 15px 0;
+    font-size: 18px;
+    font-weight: 600;
+
+    &.spe {
+      // background: red;
+      position: sticky;
+      background: #fff;
+      z-index: 9000;
+      width: 100%;
+      top: 0;
+      padding: 15px;
+      margin: 0;
+    }
+  }
+  .e-content {
+    font-size: 14px;
+    font-weight: 500;
+    // padding: 0 15px;
+    .tit {
+      padding: 0 20px;
+      font-size: var(--font-size);
+
+      .icon {
+        position: relative;
+        height: 15px;
+        width: 40px;
+        &::before {
+          width: 12px;
+          height: 12px;
+          background: #fe4440;
+          border-radius: 50%;
+          position: absolute;
+          left: 0;
+          content: "";
+        }
+        &::after {
+          width: 12px;
+          height: 12px;
+          background: #ffe54c;
+          border-radius: 50%;
+          position: absolute;
+          left: 14px;
+          content: "";
+        }
+      }
+    }
+
+    ul {
+      display: flex;
+      // padding: 20px 20px 0px 20px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+      li {
+        width: 100%;
+        text-align: left;
+        margin-bottom: 5px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+        // margin-left: 24px;
+        padding: 0 45px;
+        &.week-day,
+        &.money {
+          flex-direction: column;
+          margin-left: 0;
+          width: 50%;
+          height: 50px;
+          text-align: center;
+          font-weight: 600;
+          border-bottom: 1px solid #eaf2fa;
+          padding: 0;
+        }
+        &.week-day {
+          color: #fe4440;
+          .day {
+            font-size: 18px;
+          }
+        }
+        &.money {
+          // color: red;
+          .num {
+            font-size: 18px;
+          }
+          .tits {
+            color: var(--nosle-text-color);
+          }
+        }
+
+        .open {
+          color: var(--nosle-text-color);
+          padding-right: 5px;
+          display: inline-block;
+          width: 90px;
+        }
+        .val {
+          display: inline-block;
+          width: 130px;
+          // font-size: 14px;
+          overflow: hidden;
+          white-space: nowrap;
+          text-overflow: ellipsis;
         }
       }
     }

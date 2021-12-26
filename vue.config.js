@@ -23,6 +23,8 @@ module.exports = {
         "components": "@/components",
         "views": "@/views",
         "utils": "@/utils",
+        "store": "@/store",
+
       }
     }
   }
